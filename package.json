@@ -9,7 +9,11 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "dev": "bun run ./src/main.ts --watch"
+    "dev": "bun run ./src/main.ts --watch",
+    "build": "bun build src/index.ts",
+    "start": "NODE_ENV=production bun src/index.ts",
+    "test": "bun test"
+
   },
   "dependencies": {
     "elysia": "^1.0.15"
