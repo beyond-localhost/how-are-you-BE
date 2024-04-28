@@ -10,5 +10,8 @@
   },
   "scripts": {
     "dev": "bun run ./src/main.ts --watch"
+  },
+  "dependencies": {
+    "elysia": "^1.0.15"
   }
 }
