@@ -2,6 +2,7 @@
   "name": "how-are-you-be",
   "version": "1.0.0",
   "description": "How are you doing?",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
