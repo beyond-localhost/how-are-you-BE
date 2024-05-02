@@ -3,19 +3,21 @@
   "module": "src/main.ts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.20.17"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "dev": "bun run ./src/main.ts --watch",
+    "dev": "TZ=utc bun --watch ./src/main.ts",
     "build": "bun build src/index.ts",
     "start": "NODE_ENV=production bun src/index.ts",
-    "test": "bun test"
-
+    "test": "bun test",
+    "migration:generate": "bunx drizzle-kit generate:sqlite"
   },
   "dependencies": {
+    "drizzle-orm": "^0.30.10",
     "elysia": "^1.0.15"
   }
 }
