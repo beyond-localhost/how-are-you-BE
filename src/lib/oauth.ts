@@ -1,8 +1,4 @@
-import {
-  DataParseError,
-  InputRangeError,
-  JSONParseError,
-} from "src/core/error";
+import { DataParseError, InputRangeError, JSONParseError } from "../core/error";
 import { z } from "zod";
 
 const OAuthState = z.object({
