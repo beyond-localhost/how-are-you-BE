@@ -27,3 +27,6 @@ export const users = sqliteTable(
     emailUnique: uniqueIndex("users_email_unique_idx").on(t.email),
   })
 );
+
+export type CreateUserDto = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;

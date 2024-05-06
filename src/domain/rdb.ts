@@ -6,3 +6,5 @@ const IN_MEMORY_PATH = ":memory:";
 export function createSQLiteDatabase(path = "sqlite.db") {
   return drizzle(new Database(path));
 }
+
+export type Conn = ReturnType<typeof createSQLiteDatabase>;
