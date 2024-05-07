@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@elysiajs/jwt": "^1.0.2",
+    "@elysiajs/swagger": "^1.0.5",
     "drizzle-orm": "^0.30.10",
     "elysia": "^1.0.15",
     "zod": "^3.23.5"
