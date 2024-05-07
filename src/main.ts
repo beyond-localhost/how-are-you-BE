@@ -10,6 +10,7 @@ import {
 import { createUser, findUserByExternalId } from "./domain/user.repository";
 import jwt from "@elysiajs/jwt";
 import { deserializeOAuthState, serializeOAuthState } from "./lib/oauth";
+import swagger from "@elysiajs/swagger";
 
 const env = resolveEnv();
 const db = createSQLiteDatabase();
@@ -19,6 +20,23 @@ const app = new Elysia()
   .decorate("env", env)
   .decorate("conn", db)
   .get("/version", ({ version }) => version)
+  .use(
+    swagger({
+      exclude: "/callback",
+      documentation: {
+        info: {
+          title: "How are you - API",
+          version: "1.0.0",
+        },
+        tags: [
+          {
+            name: "Auth",
+            description: "How Are You 서비스의 auth를 나타내요",
+          },
+        ],
+      },
+    })
+  )
   .use(
     jwt({
       name: "jwt",
@@ -49,6 +67,10 @@ const app = new Elysia()
       body: t.Object({
         destination: t.String(),
       }),
+      response: t.String(),
+      detail: {
+        tags: ["Auth"],
+      },
     }
   )
   .get(
@@ -123,12 +145,10 @@ const app = new Elysia()
       const destinationURL = new URL(oauthState.destination);
       destinationURL.searchParams.set("access_token", tokenInfo.accessToken);
       destinationURL.searchParams.set("refresh_token", tokenInfo.refreshToken);
-      redirect(destinationURL.toString());
+      return redirect(destinationURL.toString());
     },
     { query: t.Object({ code: t.String(), state: t.String() }) }
   )
-  .get("/user/:id", ({ params: { id } }) => id)
-  .post("/form", ({ body }) => body)
   .listen(env.Server.Port);
 
 export type App = typeof app;
