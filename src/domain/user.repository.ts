@@ -10,6 +10,12 @@ export const findUserByExternalId = async (
 ): Promise<User | DataNotFoundError> =>
   conn.select().from(users).where(eq(users.externalId, externalId)).then(head);
 
+export const findUserById = async (
+  conn: Conn,
+  id: number
+): Promise<User | DataNotFoundError> =>
+  conn.select().from(users).where(eq(users.id, id)).then(head);
+
 export const createUser = async (
   conn: Conn,
   dto: CreateUserDto
