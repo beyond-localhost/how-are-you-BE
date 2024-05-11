@@ -7,7 +7,11 @@ import {
   DataParseError,
   FetchNotOkError,
 } from "./core/error";
-import { createUser, findUserByExternalId } from "./domain/user.repository";
+import {
+  createUser,
+  findUserByExternalId,
+  findUserById,
+} from "./domain/user.repository";
 import jwt from "@elysiajs/jwt";
 import { deserializeOAuthState, serializeOAuthState } from "./lib/oauth";
 import swagger from "@elysiajs/swagger";
@@ -115,6 +119,7 @@ const app = new Elysia()
 
       const tokenInfo = await conn.transaction(async (tx) => {
         let user = await findUserByExternalId(tx, `${userResponse.id}`);
+        console.log(user);
         if (user instanceof DataNotFoundError) {
           user = await createUser(tx, {
             externalId: userResponse.id.toString(),
@@ -137,8 +142,6 @@ const app = new Elysia()
           exp: refreshTokenExp,
           sub: sub.toString(),
         });
-        console.log(accessToken);
-        console.log(refreshToken);
         return { accessToken, refreshToken };
       });
 
@@ -148,6 +151,41 @@ const app = new Elysia()
       return redirect(destinationURL.toString());
     },
     { query: t.Object({ code: t.String(), state: t.String() }) }
+  )
+  .guard(
+    {
+      headers: t.Object({
+        authorization: t.TemplateLiteral("Bearer ${string}"),
+      }),
+    },
+    (app) =>
+      app
+        .resolve(async ({ headers: { authorization }, jwt }) => {
+          const bearerToken = authorization.split(" ")[1];
+          if (bearerToken === undefined || bearerToken.length === 0) {
+            throw new Error("Bearer token should be defined");
+          }
+          const jwtPayload = await jwt.verify(bearerToken);
+          if (jwtPayload === false) {
+            throw new Error("JWT should be defined");
+          }
+          const userId = jwtPayload.sub;
+          if (!userId || Number.isNaN(Number(userId))) {
+            throw new Error("userId not defined");
+          }
+
+          return {
+            userId: Number(userId),
+          };
+        })
+        .get("/sessions", async ({ userId, conn, set }) => {
+          const user = await findUserById(conn, userId);
+          if (user instanceof DataNotFoundError) {
+            set.status = 404;
+            return;
+          }
+          return user;
+        })
   )
   .listen(env.Server.Port);
 
