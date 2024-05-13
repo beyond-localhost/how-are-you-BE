@@ -1,14 +1,25 @@
 import { eq } from "drizzle-orm";
 import type { Conn } from "./rdb";
-import { users, type CreateUserDto, type User } from "./user.entity";
+import {
+  externalIdentities,
+  users,
+  type CreateExternalIdentity,
+  type CreateUserDto,
+  type User,
+} from "./user.entity";
 import { dangerousHead, head } from "../lib/predicate";
 import type { DataNotFoundError } from "../core/error";
 
-export const findUserByExternalId = async (
+export const createExternalIdentities = async (
+  tx: Conn,
+  dto: CreateExternalIdentity
+) => tx.insert(externalIdentities).values(dto).returning().then(dangerousHead);
+
+export const findUserByEmail = async (
   conn: Conn,
-  externalId: string
+  email: string
 ): Promise<User | DataNotFoundError> =>
-  conn.select().from(users).where(eq(users.externalId, externalId)).then(head);
+  conn.select().from(users).where(eq(users.email, email)).then(head);
 
 export const findUserById = async (
   conn: Conn,

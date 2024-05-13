@@ -8,8 +8,9 @@ import {
   FetchNotOkError,
 } from "./core/error";
 import {
+  createExternalIdentities,
   createUser,
-  findUserByExternalId,
+  findUserByEmail,
   findUserById,
 } from "./domain/user.repository";
 import jwt from "@elysiajs/jwt";
@@ -118,13 +119,16 @@ const app = new Elysia()
       }
 
       const tokenInfo = await conn.transaction(async (tx) => {
-        let user = await findUserByExternalId(tx, `${userResponse.id}`);
-        console.log(user);
+        let user = await findUserByEmail(tx, userResponse.kakao_account.email);
         if (user instanceof DataNotFoundError) {
           user = await createUser(tx, {
-            externalId: userResponse.id.toString(),
             email: userResponse.kakao_account.email,
-            userName: userResponse.properties.nickname,
+          });
+          await createExternalIdentities(tx, {
+            id: userResponse.id.toString(),
+            provider: "kakao",
+            email: user.email,
+            userId: user.id,
           });
         }
         const sub = user.id;

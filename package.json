@@ -16,6 +16,8 @@
     "start": "NODE_ENV=production bun src/index.ts",
     "test": "bun test",
     "migration:generate": "bunx drizzle-kit generate:sqlite",
+    "migration:drop": "bunx drizzle-kit drop",
+    "migration:up": "bun run ./migration",
     "export:type": "bunx tsc -p ./tsconfig.export.json",
     "gen": "bunx tsc -p ./tsconfig.export.json --declaration --skipLibCheck --isolatedModules --emitDeclarationOnly --target esnext --module NodeNext --moduleResolution NodeNext --outDir dist"
   },
