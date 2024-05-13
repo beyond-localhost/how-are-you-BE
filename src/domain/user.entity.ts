@@ -3,8 +3,9 @@ import {
   sqliteTable,
   integer,
   text,
-  uniqueIndex,
+  primaryKey,
 } from "drizzle-orm/sqlite-core";
+import { questionAnswers } from "./question.entity";
 
 export const externalIdentities = sqliteTable("external_identities", {
   id: text("id").primaryKey().notNull(),
@@ -46,10 +47,8 @@ export const users = sqliteTable("users", {
 export const usersRelations = relations(users, ({ one, many }) => {
   return {
     externalIdentities: many(externalIdentities),
-    verificationCode: one(emailVerificationCodes, {
-      fields: [users.verificationCode],
-      references: [emailVerificationCodes.code],
-    }),
+    questionAnswers: many(questionAnswers),
+    profile: one(userProfiles),
   };
 });
 
@@ -65,6 +64,60 @@ export const emailVerificationcodesRelations = relations(
   ({ one }) => {
     return {
       user: one(users),
+    };
+  }
+);
+
+export const userProfiles = sqliteTable("user_profiles", {
+  id: integer("id")
+    .primaryKey()
+    .references(() => users.id),
+  nickname: text("nickname").notNull().unique(),
+  dateOfBirthYear: integer("date_of_birth_year").notNull(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+export const userProfilesRelations = relations(userProfiles, ({ many }) => {
+  return {
+    jobs: many(userJobs),
+  };
+});
+
+export const jobs = sqliteTable("jobs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  job: text("job").notNull().unique(),
+});
+
+export const jobsRelations = relations(jobs, ({ many }) => {
+  return {
+    users: many(userJobs),
+  };
+});
+
+export const userJobs = sqliteTable(
+  "user_profile_jobs",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => userProfiles.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    jobId: integer("job_id")
+      .notNull()
+      .references(() => jobs.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+  },
+  (t) => {
+    return {
+      pk: primaryKey({ columns: [t.jobId, t.userId] }),
     };
   }
 );
