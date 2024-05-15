@@ -42,6 +42,25 @@ CREATE TABLE `users` (
 	FOREIGN KEY (`verification_code`) REFERENCES `email_verification_codes`(`code`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
+CREATE TABLE `question_answers` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`answer` text NOT NULL,
+	`question_id` integer NOT NULL,
+	`user_id` integer NOT NULL,
+	`is_public` integer DEFAULT false NOT NULL,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`updated_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	FOREIGN KEY (`question_id`) REFERENCES `questions`(`id`) ON UPDATE cascade ON DELETE set null,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE cascade ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `questions` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`question` text NOT NULL,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`updated_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL
+);
+--> statement-breakpoint
 CREATE UNIQUE INDEX `jobs_job_unique` ON `jobs` (`job`);--> statement-breakpoint
 CREATE UNIQUE INDEX `user_profiles_nickname_unique` ON `user_profiles` (`nickname`);--> statement-breakpoint
 CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);

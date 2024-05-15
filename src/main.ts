@@ -254,7 +254,6 @@ const app = new Elysia()
               .map((v) => v.job)
               .map(({ id, job }) => ({ id, name: job })),
           };
-          // return ;
         })
   )
   .listen(env.Server.Port);
