@@ -22,6 +22,7 @@ import jwt from "@elysiajs/jwt";
 import { deserializeOAuthState, serializeOAuthState } from "./lib/oauth";
 import swagger from "@elysiajs/swagger";
 import { findTodayQuestion } from "./domain/question.repository";
+import nickname from "./static/nickname.json";
 
 const env = resolveEnv();
 const db = createSQLiteDatabase();
@@ -196,6 +197,19 @@ const app = new Elysia()
           }
           return user;
         })
+        .get(
+          "/recommendation_nickname",
+          async ({ set }) => {
+            const ret =
+              nickname.ret[Math.floor(Math.random() * nickname.ret.length)];
+            if (ret === undefined) {
+              set.status = 500;
+              return "";
+            }
+            return ret;
+          },
+          { response: t.String() }
+        )
         .post(
           "/me/profile",
           async ({ body, conn, userId, set }) => {
