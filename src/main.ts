@@ -21,6 +21,7 @@ import {
 import jwt from "@elysiajs/jwt";
 import { deserializeOAuthState, serializeOAuthState } from "./lib/oauth";
 import swagger from "@elysiajs/swagger";
+import { findTodayQuestion } from "./domain/question.repository";
 
 const env = resolveEnv();
 const db = createSQLiteDatabase();
@@ -254,6 +255,15 @@ const app = new Elysia()
               .map((v) => v.job)
               .map(({ id, job }) => ({ id, name: job })),
           };
+        })
+        .get("/questions/today", async ({ conn, set }) => {
+          const ret = await findTodayQuestion(conn);
+          if (ret === undefined) {
+            set.status = 500;
+            return "StevenDoesNotPushRowsError";
+          }
+
+          return ret.question;
         })
   )
   .listen(env.Server.Port);
