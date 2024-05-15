@@ -82,13 +82,15 @@ const app = new Elysia()
       kakaoURL.searchParams.set("response_type", "code");
       kakaoURL.searchParams.set("client_id", env.Credential.KakaoRestAPIKey);
       kakaoURL.searchParams.set("state", state);
-      return kakaoURL.toString();
+      return {
+        url: kakaoURL.toString(),
+      };
     },
     {
       body: t.Object({
         destination: t.String(),
       }),
-      response: t.String(),
+      response: t.Object({ url: t.String() }),
       detail: {
         tags: ["Auth"],
       },
