@@ -12,6 +12,11 @@ import {
   createUser,
   findUserByEmail,
   findUserById,
+  findUserProfileByUserId,
+  createUserProfile,
+  createUserJobs,
+  findJobs,
+  findUserByIdOrFailWithProfile,
 } from "./domain/user.repository";
 import jwt from "@elysiajs/jwt";
 import { deserializeOAuthState, serializeOAuthState } from "./lib/oauth";
@@ -182,13 +187,74 @@ const app = new Elysia()
             userId: Number(userId),
           };
         })
-        .get("/sessions", async ({ userId, conn, set }) => {
+        .get("/me", async ({ userId, conn, set }) => {
           const user = await findUserById(conn, userId);
           if (user instanceof DataNotFoundError) {
             set.status = 404;
             return;
           }
           return user;
+        })
+        .post(
+          "/me/profile",
+          async ({ body, conn, userId, set }) => {
+            const userProfile = await findUserProfileByUserId(conn, userId);
+            if (!(userProfile instanceof DataNotFoundError)) {
+              set.status = 400;
+              return "";
+            }
+
+            set.status = 201;
+            return await conn.transaction(async (tx) => {
+              const profile = await createUserProfile(tx, {
+                nickname: body.nickname,
+                dateOfBirthYear: body.dateOfBirthYear,
+                id: userId,
+              });
+              await createUserJobs(
+                tx,
+                body.jobs.map((jobId) => ({ jobId, userId }))
+              );
+
+              return {
+                id: userId,
+                nickname: profile.nickname,
+                dateOfBirthYear: profile.dateOfBirthYear,
+                jobs: await findJobs(tx, body.jobs),
+              };
+            });
+          },
+          {
+            body: t.Object({
+              nickname: t.String({ minLength: 1, maxLength: 20 }),
+              dateOfBirthYear: t.Number({ minimum: 1900, maximum: 2024 }),
+              jobs: t.Array(t.Number({ minimum: 1 })),
+            }),
+            response: {
+              201: t.Object({
+                id: t.Number(),
+                nickname: t.String(),
+                dateOfBirthYear: t.Number(),
+                jobs: t.Array(t.Object({ id: t.Number(), job: t.String() })),
+              }),
+              400: t.String(),
+            },
+          }
+        )
+        .get("/me/profile", async ({ userId, conn, set }) => {
+          const ret = await findUserByIdOrFailWithProfile(conn, userId);
+          if (ret === undefined) {
+            set.status = 400;
+            return set;
+          }
+
+          return {
+            ...ret,
+            jobs: ret.jobs
+              .map((v) => v.job)
+              .map(({ id, job }) => ({ id, name: job })),
+          };
+          // return ;
         })
   )
   .listen(env.Server.Port);

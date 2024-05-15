@@ -18,6 +18,7 @@
     "migration:generate": "bunx drizzle-kit generate:sqlite",
     "migration:drop": "bunx drizzle-kit drop",
     "migration:up": "bun run ./migration",
+    "seed": "bun run ./seed",
     "export:type": "bunx tsc -p ./tsconfig.export.json",
     "gen": "bunx tsc -p ./tsconfig.export.json --declaration --skipLibCheck --isolatedModules --emitDeclarationOnly --target esnext --module NodeNext --moduleResolution NodeNext --outDir dist"
   },

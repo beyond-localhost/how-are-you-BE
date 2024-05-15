@@ -81,6 +81,8 @@ export const userProfiles = sqliteTable("user_profiles", {
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
 });
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type CreateUserProfile = typeof userProfiles.$inferInsert;
 
 export const userProfilesRelations = relations(userProfiles, ({ many }) => {
   return {
@@ -92,6 +94,8 @@ export const jobs = sqliteTable("jobs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   job: text("job").notNull().unique(),
 });
+
+export type Job = typeof jobs.$inferSelect;
 
 export const jobsRelations = relations(jobs, ({ many }) => {
   return {
@@ -121,6 +125,21 @@ export const userJobs = sqliteTable(
     };
   }
 );
+
+export const userJobsRelations = relations(userJobs, ({ one }) => {
+  return {
+    user: one(userProfiles, {
+      fields: [userJobs.userId],
+      references: [userProfiles.id],
+    }),
+    job: one(jobs, {
+      fields: [userJobs.jobId],
+      references: [jobs.id],
+    }),
+  };
+});
+
+export type CreateUserJob = typeof userJobs.$inferInsert;
 
 export type CreateUserDto = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
