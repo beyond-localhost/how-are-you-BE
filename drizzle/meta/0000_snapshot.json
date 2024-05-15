@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "091a0c17-16b1-41b9-a2df-efab62add644",
+  "id": "b42b9507-065c-4ef9-a1ae-ac91fe1735cf",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "email_verification_codes": {
@@ -321,8 +321,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "question_id": {
-          "name": "question_id",
+        "question_distribution_id": {
+          "name": "question_distribution_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -362,12 +362,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "question_answers_question_id_questions_id_fk": {
-          "name": "question_answers_question_id_questions_id_fk",
+        "question_answers_question_distribution_id_question_distributions_id_fk": {
+          "name": "question_answers_question_distribution_id_question_distributions_id_fk",
           "tableFrom": "question_answers",
-          "tableTo": "questions",
+          "tableTo": "question_distributions",
           "columnsFrom": [
-            "question_id"
+            "question_distribution_id"
           ],
           "columnsTo": [
             "id"
@@ -387,6 +387,59 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "question_distributions": {
+      "name": "question_distributions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "question_id": {
+          "name": "question_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "distribution_date": {
+          "name": "distribution_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_DATE)"
+        }
+      },
+      "indexes": {
+        "question_distributions_distribution_date_unique": {
+          "name": "question_distributions_distribution_date_unique",
+          "columns": [
+            "distribution_date"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "question_distributions_question_id_questions_id_fk": {
+          "name": "question_distributions_question_id_questions_id_fk",
+          "tableFrom": "question_distributions",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},

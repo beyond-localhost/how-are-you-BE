@@ -45,13 +45,20 @@ CREATE TABLE `users` (
 CREATE TABLE `question_answers` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`answer` text NOT NULL,
-	`question_id` integer NOT NULL,
+	`question_distribution_id` integer NOT NULL,
 	`user_id` integer NOT NULL,
 	`is_public` integer DEFAULT false NOT NULL,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	`updated_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	FOREIGN KEY (`question_id`) REFERENCES `questions`(`id`) ON UPDATE cascade ON DELETE set null,
+	FOREIGN KEY (`question_distribution_id`) REFERENCES `question_distributions`(`id`) ON UPDATE cascade ON DELETE set null,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE cascade ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `question_distributions` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`question_id` integer NOT NULL,
+	`distribution_date` text DEFAULT (CURRENT_DATE) NOT NULL,
+	FOREIGN KEY (`question_id`) REFERENCES `questions`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `questions` (
@@ -63,4 +70,5 @@ CREATE TABLE `questions` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `jobs_job_unique` ON `jobs` (`job`);--> statement-breakpoint
 CREATE UNIQUE INDEX `user_profiles_nickname_unique` ON `user_profiles` (`nickname`);--> statement-breakpoint
-CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);
+CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);--> statement-breakpoint
+CREATE UNIQUE INDEX `question_distributions_distribution_date_unique` ON `question_distributions` (`distribution_date`);
