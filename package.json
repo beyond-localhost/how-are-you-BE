@@ -19,8 +19,7 @@
     "migration:drop": "bunx drizzle-kit drop",
     "migration:up": "bun run ./migration",
     "seed": "bun run ./seed",
-    "export:type": "bunx tsc -p ./tsconfig.export.json",
-    "gen": "bunx tsc -p ./tsconfig.export.json --declaration --skipLibCheck --isolatedModules --emitDeclarationOnly --target esnext --module NodeNext --moduleResolution NodeNext --outDir dist"
+    "db:init": "rm -rf ./sqlite.db && bun run migration:up && bun run seed"
   },
   "dependencies": {
     "@elysiajs/jwt": "^1.0.2",

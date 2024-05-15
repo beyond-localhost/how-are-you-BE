@@ -5,7 +5,7 @@ import * as schema from "./schema";
 const IN_MEMORY_PATH = ":memory:";
 
 export function createSQLiteDatabase(path = "sqlite.db") {
-  return drizzle(new Database(path), { schema: { ...schema } });
+  return drizzle(new Database(path), { schema: { ...schema }, logger: true });
 }
 
 export type Conn = ReturnType<typeof createSQLiteDatabase>;

@@ -198,11 +198,16 @@ const app = new Elysia()
         })
         .get("/me", async ({ userId, conn, set }) => {
           const user = await findUserById(conn, userId);
-          if (user instanceof DataNotFoundError) {
+          if (!user) {
             set.status = 404;
             return;
           }
-          return user;
+
+          return {
+            id: user.id,
+            email: user.email,
+            profile: user.profile || null,
+          };
         })
         .get(
           "/recommendation_nickname",
@@ -284,7 +289,7 @@ const app = new Elysia()
             return "StevenDoesNotPushRowsError";
           }
 
-          return ret.question;
+          return { id: ret.id, question: ret.question };
         })
         .post(
           "/questions/:id/answers",

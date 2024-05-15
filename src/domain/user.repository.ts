@@ -28,11 +28,18 @@ export const findUserByEmail = async (
 ): Promise<User | DataNotFoundError> =>
   conn.select().from(users).where(eq(users.email, email)).then(head);
 
-export const findUserById = async (
-  conn: Conn,
-  id: number
-): Promise<User | DataNotFoundError> =>
-  conn.select().from(users).where(eq(users.id, id)).then(head);
+export const findUserById = async (conn: Conn, id: number) =>
+  conn.query.users.findFirst({
+    where: eq(users.id, id),
+    with: {
+      profile: {
+        columns: {
+          nickname: true,
+          dateOfBirthYear: true,
+        },
+      },
+    },
+  });
 
 export const findUserByIdOrFail = async (
   conn: Conn,

@@ -5,7 +5,7 @@ import {
   questionDistributions,
   type CreateQuestionAnswer,
 } from "./question.entity";
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, eq, gte, lte, sql } from "drizzle-orm";
 import { dangerousHead } from "../lib/predicate";
 
 export const findTodayQuestion = async (conn: Conn) =>
@@ -63,6 +63,7 @@ export const findTodayUsersAnswerByUserId = async (
   conn.query.questionAnswers.findFirst({
     where: and(
       eq(questionAnswers.userId, userId),
-      gte(questionAnswers.createdAt, sql`(CURRENT_DATE)`)
+      gte(questionAnswers.createdAt, sql`(CURRENT_DATE)`),
+      lte(questionAnswers.createdAt, sql.raw(`date('now', '+1 day')`))
     ),
   });
