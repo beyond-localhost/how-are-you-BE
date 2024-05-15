@@ -30,6 +30,7 @@ import {
   updateUserAnswerById,
 } from "./domain/question.repository";
 import nickname from "./static/nickname.json";
+import cors from "@elysiajs/cors";
 
 const env = resolveEnv();
 const db = createSQLiteDatabase();
@@ -63,6 +64,7 @@ const app = new Elysia()
       iss: env.Credential.JWTIssuer,
     })
   )
+  .use(cors())
   .post(
     "/auth/kakao",
     ({ env, body: { destination }, set }) => {

@@ -22,6 +22,7 @@
     "db:init": "rm -rf ./sqlite.db && bun run migration:up && bun run seed"
   },
   "dependencies": {
+    "@elysiajs/cors": "^1.0.2",
     "@elysiajs/jwt": "^1.0.2",
     "@elysiajs/swagger": "^1.0.5",
     "drizzle-orm": "^0.30.10",
