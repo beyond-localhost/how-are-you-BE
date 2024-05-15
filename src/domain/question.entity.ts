@@ -64,6 +64,7 @@ export const questionAnswers = sqliteTable("question_answers", {
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
 });
+export type CreateQuestionAnswer = typeof questionAnswers.$inferInsert;
 
 export const questionAnswersRelations = relations(
   questionAnswers,

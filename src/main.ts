@@ -21,7 +21,14 @@ import {
 import jwt from "@elysiajs/jwt";
 import { deserializeOAuthState, serializeOAuthState } from "./lib/oauth";
 import swagger from "@elysiajs/swagger";
-import { findTodayQuestion } from "./domain/question.repository";
+import {
+  createTodayUserAnswer,
+  deleteUserAnswerById,
+  findTodayQuestion,
+  findTodayUsersAnswerByUserId,
+  findUserAnswerById,
+  updateUserAnswerById,
+} from "./domain/question.repository";
 import nickname from "./static/nickname.json";
 
 const env = resolveEnv();
@@ -279,6 +286,88 @@ const app = new Elysia()
 
           return ret.question;
         })
+        .post(
+          "/questions/:id/answers",
+          async ({ conn, set, userId, body: { answer }, params: { id } }) => {
+            const todayAnswer = await findTodayUsersAnswerByUserId(
+              conn,
+              userId
+            );
+
+            if (todayAnswer) {
+              set.status = 400;
+              return "";
+            }
+
+            const ret = await createTodayUserAnswer(conn, {
+              userId,
+              answer,
+              questionDistributionId: id,
+            });
+            return ret;
+          },
+          {
+            params: t.Object({
+              id: t.Numeric(),
+            }),
+            body: t.Object({
+              answer: t.String({ minLength: 1, maxLength: 1000 }),
+            }),
+          }
+        )
+        .patch(
+          "/questions/:id/answers/:answerId",
+          async ({
+            conn,
+            set,
+            userId,
+            params: { answerId },
+            body: { answer },
+          }) => {
+            const existingAnswer = await findUserAnswerById(
+              conn,
+              userId,
+              answerId
+            );
+            if (existingAnswer === undefined) {
+              set.status = 400;
+              return "";
+            }
+            return await updateUserAnswerById(conn, answerId, answer);
+          },
+          {
+            params: t.Object({
+              id: t.Numeric(),
+              answerId: t.Numeric(),
+            }),
+            body: t.Object({
+              answer: t.String({ minLength: 1, maxLength: 1000 }),
+            }),
+          }
+        )
+        .delete(
+          "/questions/:id/answers/:answerId",
+          async ({ conn, set, userId, params: { answerId } }) => {
+            const existingAnswer = await findUserAnswerById(
+              conn,
+              userId,
+              answerId
+            );
+            if (existingAnswer === undefined) {
+              set.status = 400;
+              return "";
+            }
+            await deleteUserAnswerById(conn, userId, answerId);
+            set.status = 204;
+            return true;
+          },
+          {
+            params: t.Object({
+              id: t.Numeric(),
+              answerId: t.Numeric(),
+            }),
+          }
+        )
   )
   .listen(env.Server.Port);
 
