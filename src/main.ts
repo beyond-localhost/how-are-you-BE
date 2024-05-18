@@ -81,7 +81,7 @@ const app = new Elysia()
       iss: env.Credential.JWTIssuer,
     })
   )
-  .use(cors({ origin: ["http://localhost:5173"] }))
+  .use(cors({ origin: ["localhost:5173"] }))
   .post(
     "/auth/kakao",
     ({ env, body: { destination }, set }) => {
