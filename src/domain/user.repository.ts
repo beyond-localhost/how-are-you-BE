@@ -14,7 +14,7 @@ import {
   type Job,
   jobs,
 } from "./user.entity";
-import { dangerousHead, head } from "../lib/predicate";
+import { dangerousHead, head, nonNullish } from "../lib/predicate";
 import type { DataNotFoundError } from "../core/error";
 
 export const createExternalIdentities = async (
@@ -48,29 +48,26 @@ export const findUserByIdOrFail = async (
   conn.select().from(users).where(eq(users.id, id)).then(dangerousHead);
 
 export const findUserByIdOrFailWithProfile = async (conn: Conn, id: number) =>
-  conn.query.userProfiles.findFirst({
-    columns: {
-      createdAt: false,
-      updatedAt: false,
-    },
-    where: eq(userProfiles.id, id),
-    with: {
-      jobs: {
-        columns: {
-          jobId: false,
-          userId: false,
-        },
-        with: {
-          job: true,
+  conn.query.userProfiles
+    .findFirst({
+      columns: {
+        createdAt: false,
+        updatedAt: false,
+      },
+      where: eq(userProfiles.id, id),
+      with: {
+        jobs: {
+          columns: {
+            jobId: false,
+            userId: false,
+          },
+          with: {
+            job: true,
+          },
         },
       },
-    },
-  });
-// .select()
-// .from(userProfiles)
-// .where(eq(userProfiles.id, id))
-// .innerJoin(userJobs, eq(userJobs.userId, userProfiles.id))
-// .innerJoin(jobs, eq(jobs.id, userJobs.jobId));
+    })
+    .then(nonNullish);
 
 export const createUser = async (
   conn: Conn,

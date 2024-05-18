@@ -7,6 +7,9 @@ const ErrorTag = {
   JSONParseError: "JSONParseError",
   JWTExpiredError: "JWTExpiredError",
   JWTMalformedError: "JWTMalformedError",
+  UnInterntionalError: "UnInterntionalError",
+  UserAlreadyAnswerTodayQuestionError: "UserAlreadyAnswerTodayQuestionError",
+  UserNotAnswerQuestionError: "UserNotAnswerQuestionError",
 } as const;
 export const ErrorTagValues = Object.keys(ErrorTag);
 
@@ -51,6 +54,29 @@ export const jwtMalformedError = () =>
   ({ _tag: ErrorTag.JWTMalformedError } as const);
 export type JWTMalformedError = ReturnType<typeof jwtMalformedError>;
 export const JWTMalformedError = createErrorValidation("JWTMalformedError");
+
+export const userAlreadyAnswerTodayQuestionError = () =>
+  ({ _tag: ErrorTag.UserAlreadyAnswerTodayQuestionError } as const);
+export type UserAlreadyAnswerTodayQuestionError = ReturnType<
+  typeof userAlreadyAnswerTodayQuestionError
+>;
+export const UserAlreadyAnswerTodayQuestionError = createErrorValidation(
+  "UserAlreadyAnswerTodayQuestionError"
+);
+
+export const userNotAnswerQuestionError = () =>
+  ({ _tag: ErrorTag.UserNotAnswerQuestionError } as const);
+export type UserNotAnswerQuestionError = ReturnType<
+  typeof userNotAnswerQuestionError
+>;
+export const UserNotAnswerQuestionError = createErrorValidation(
+  "UserNotAnswerQuestionError"
+);
+
+export const unIntentionalError = () =>
+  ({ _tag: ErrorTag.UnInterntionalError } as const);
+export type UnIntentionalError = ReturnType<typeof unIntentionalError>;
+export const UnIntentionalError = createErrorValidation("UnInterntionalError");
 
 export const isError = (value: unknown): value is CoreError =>
   typeof value === "object" &&

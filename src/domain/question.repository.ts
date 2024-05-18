@@ -6,27 +6,31 @@ import {
   type CreateQuestionAnswer,
 } from "./question.entity";
 import { and, eq, gte, lte, sql } from "drizzle-orm";
-import { dangerousHead } from "../lib/predicate";
+import { dangerousHead, nonNullish } from "../lib/predicate";
 
 export const findTodayQuestion = async (conn: Conn) =>
-  conn.query.questionDistributions.findFirst({
-    where: eq(questionDistributions.distributionDate, sql`(CURRENT_DATE)`),
-    with: {
-      question: true,
-    },
-  });
+  conn.query.questionDistributions
+    .findFirst({
+      where: eq(questionDistributions.distributionDate, sql`(CURRENT_DATE)`),
+      with: {
+        question: true,
+      },
+    })
+    .then(nonNullish);
 
 export const findUserAnswerById = async (
   conn: Conn,
   userId: number,
   distributionId: number
 ) =>
-  conn.query.questionAnswers.findFirst({
-    where: and(
-      eq(questionAnswers.questionDistributionId, distributionId),
-      eq(questionAnswers.userId, userId)
-    ),
-  });
+  conn.query.questionAnswers
+    .findFirst({
+      where: and(
+        eq(questionAnswers.questionDistributionId, distributionId),
+        eq(questionAnswers.userId, userId)
+      ),
+    })
+    .then(nonNullish);
 
 export const updateUserAnswerById = async (
   conn: Conn,
@@ -60,10 +64,12 @@ export const findTodayUsersAnswerByUserId = async (
   conn: Conn,
   userId: number
 ) =>
-  conn.query.questionAnswers.findFirst({
-    where: and(
-      eq(questionAnswers.userId, userId),
-      gte(questionAnswers.createdAt, sql`(CURRENT_DATE)`),
-      lte(questionAnswers.createdAt, sql.raw(`date('now', '+1 day')`))
-    ),
-  });
+  conn.query.questionAnswers
+    .findFirst({
+      where: and(
+        eq(questionAnswers.userId, userId),
+        gte(questionAnswers.createdAt, sql`(CURRENT_DATE)`),
+        lte(questionAnswers.createdAt, sql.raw(`date('now', '+1 day')`))
+      ),
+    })
+    .then(nonNullish);

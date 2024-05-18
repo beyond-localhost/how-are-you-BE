@@ -3,10 +3,13 @@ import { resolveEnv } from "./env";
 import { createSQLiteDatabase } from "./domain/rdb";
 import { fetchKakaoToken, fetchKakaoUser } from "./lib/kakao";
 import {
+  DataNotFoundError,
   DataParseError,
   InputRangeError,
   JWTExpiredError,
   JWTMalformedError,
+  UnIntentionalError,
+  UserAlreadyAnswerTodayQuestionError,
   dataNotFoundError,
   dataParseError,
   inputRangeError,
@@ -18,6 +21,8 @@ import {
   // JWTMalformedError,
   jwtExpiredError,
   jwtMalformedError,
+  unIntentionalError,
+  userAlreadyAnswerTodayQuestionError,
 } from "./core/error";
 import {
   createExternalIdentities,
@@ -257,27 +262,28 @@ const app = new Elysia()
               return dataNotFoundError();
             }
 
-            set.status = 201;
+            set.status = 200;
             return {
               id: user.id,
               email: user.email,
               profile: user.profile,
             };
+          },
+          {
+            response: {
+              200: t.Object({
+                id: t.Number(),
+                email: t.String(),
+                profile: t.Nullable(
+                  t.Object({
+                    nickname: t.String(),
+                    dateOfBirthYear: t.Number(),
+                  })
+                ),
+              }),
+              404: DataNotFoundError,
+            },
           }
-          // {
-          //   response: {
-          //     200: t.Object({
-          //       id: t.Number(),
-          //       email: t.String(),
-          //       profile: t.Nullable(
-          //         t.Object({
-          //           nickname: t.String(),
-          //           dateOfBirthYear: t.Number(),
-          //         })
-          //       ),
-          //     }),
-          //   },
-          // }
         )
         .get(
           "/recommendation_nickname",
@@ -285,41 +291,53 @@ const app = new Elysia()
             const ret =
               nickname.ret[Math.floor(Math.random() * nickname.ret.length)];
             if (ret === undefined) {
-              set.status = 500;
-              return "";
+              set.status = 404;
+              return dataNotFoundError();
             }
-            return ret;
+            set.status = 200;
+            return { nickname: ret };
           },
-          { response: t.String() }
+          {
+            response: {
+              200: t.Object({ nickname: t.String() }),
+              404: DataNotFoundError,
+            },
+          }
         )
         .post(
           "/me/profile",
           async ({ body, conn, userId, set }) => {
             const userProfile = await findUserProfileByUserId(conn, userId);
             if (!isError(userProfile)) {
-              set.status = 400;
-              return "";
+              set.status = 404;
+              return dataNotFoundError();
             }
 
-            return await conn.transaction(async (tx) => {
-              set.status = 201;
-              const profile = await createUserProfile(tx, {
-                nickname: body.nickname,
-                dateOfBirthYear: body.dateOfBirthYear,
-                id: userId,
-              });
-              await createUserJobs(
-                tx,
-                body.jobs.map((jobId) => ({ jobId, userId }))
-              );
+            try {
+              const ret = await conn.transaction(async (tx) => {
+                const profile = await createUserProfile(tx, {
+                  nickname: body.nickname,
+                  dateOfBirthYear: body.dateOfBirthYear,
+                  id: userId,
+                });
+                await createUserJobs(
+                  tx,
+                  body.jobs.map((jobId) => ({ jobId, userId }))
+                );
 
-              return {
-                id: userId,
-                nickname: profile.nickname,
-                dateOfBirthYear: profile.dateOfBirthYear,
-                jobs: await findJobs(tx, body.jobs),
-              };
-            });
+                return {
+                  id: userId,
+                  nickname: profile.nickname,
+                  dateOfBirthYear: profile.dateOfBirthYear,
+                  jobs: await findJobs(tx, body.jobs),
+                };
+              });
+              set.status = 201;
+              return ret;
+            } catch (err) {
+              set.status = 500;
+              return unIntentionalError();
+            }
           },
           {
             body: t.Object({
@@ -327,40 +345,72 @@ const app = new Elysia()
               dateOfBirthYear: t.Number({ minimum: 1900, maximum: 2024 }),
               jobs: t.Array(t.Number({ minimum: 1 })),
             }),
-            // response: {
-            //   201: t.Object({
-            //     id: t.Number(),
-            //     nickname: t.String(),
-            //     dateOfBirthYear: t.Number(),
-            //     jobs: t.Array(t.Object({ id: t.Number(), job: t.String() })),
-            //   }),
-            //   400: t.String(),
-            // },
+            response: {
+              201: t.Object({
+                id: t.Number(),
+                nickname: t.String(),
+                dateOfBirthYear: t.Number(),
+                jobs: t.Array(t.Object({ id: t.Number(), job: t.String() })),
+              }),
+              404: DataNotFoundError,
+              500: UnIntentionalError,
+            },
           }
         )
-        .get("/me/profile", async ({ userId, conn, set }) => {
-          const ret = await findUserByIdOrFailWithProfile(conn, userId);
-          if (ret === undefined) {
-            set.status = 400;
-            return set;
-          }
+        .get(
+          "/me/profile",
+          async ({ userId, conn, set }) => {
+            const ret = await findUserByIdOrFailWithProfile(conn, userId);
+            if (isError(ret)) {
+              set.status = 404;
+              return ret;
+            }
 
-          return {
-            ...ret,
-            jobs: ret.jobs
-              .map((v) => v.job)
-              .map(({ id, job }) => ({ id, name: job })),
-          };
-        })
-        .get("/questions/today", async ({ conn, set }) => {
-          const ret = await findTodayQuestion(conn);
-          if (ret === undefined) {
-            set.status = 500;
-            return "StevenDoesNotPushRowsError";
+            return {
+              ...ret,
+              jobs: ret.jobs
+                .map((v) => v.job)
+                .map(({ id, job }) => ({ id, name: job })),
+            };
+          },
+          {
+            response: {
+              200: t.Object({
+                id: t.Number(),
+                nickname: t.String(),
+                dateOfBirthYear: t.Number(),
+                jobs: t.Array(
+                  t.Object({
+                    id: t.Number(),
+                    name: t.String(),
+                  })
+                ),
+              }),
+              404: DataNotFoundError,
+            },
           }
+        )
+        .get(
+          "/questions/today",
+          async ({ conn, set }) => {
+            const ret = await findTodayQuestion(conn);
+            if (isError(ret)) {
+              set.status = 500;
+              return unIntentionalError();
+            }
 
-          return { id: ret.id, question: ret.question };
-        })
+            return { id: ret.id, question: ret.question.question };
+          },
+          {
+            response: {
+              200: t.Object({
+                id: t.Number(),
+                question: t.String(),
+              }),
+              500: UnIntentionalError,
+            },
+          }
+        )
         .post(
           "/questions/:id/answers",
           async ({ conn, set, userId, body: { answer }, params: { id } }) => {
@@ -369,9 +419,9 @@ const app = new Elysia()
               userId
             );
 
-            if (todayAnswer) {
+            if (!isError(todayAnswer)) {
               set.status = 400;
-              return "";
+              return userAlreadyAnswerTodayQuestionError();
             }
 
             const ret = await createTodayUserAnswer(conn, {
@@ -379,7 +429,10 @@ const app = new Elysia()
               answer,
               questionDistributionId: id,
             });
-            return ret;
+            set.status = 201;
+            return {
+              id: ret.id,
+            };
           },
           {
             params: t.Object({
@@ -388,6 +441,10 @@ const app = new Elysia()
             body: t.Object({
               answer: t.String({ minLength: 1, maxLength: 1000 }),
             }),
+            response: {
+              201: t.Object({ id: t.Number() }),
+              400: UserAlreadyAnswerTodayQuestionError,
+            },
           }
         )
         .patch(
@@ -404,9 +461,9 @@ const app = new Elysia()
               userId,
               answerId
             );
-            if (existingAnswer === undefined) {
-              set.status = 400;
-              return "";
+            if (isError(existingAnswer)) {
+              set.status = 404;
+              return existingAnswer;
             }
             return await updateUserAnswerById(conn, answerId, answer);
           },
@@ -418,6 +475,17 @@ const app = new Elysia()
             body: t.Object({
               answer: t.String({ minLength: 1, maxLength: 1000 }),
             }),
+            response: {
+              200: t.Object({
+                id: t.Number(),
+                userId: t.Number(),
+                createdAt: t.String(),
+                updatedAt: t.String(),
+                questionDistributionId: t.Number(),
+                isPublic: t.Boolean(),
+              }),
+              404: DataNotFoundError,
+            },
           }
         )
         .delete(
@@ -430,7 +498,7 @@ const app = new Elysia()
             );
             if (existingAnswer === undefined) {
               set.status = 400;
-              return "";
+              return existingAnswer;
             }
             await deleteUserAnswerById(conn, userId, answerId);
             set.status = 204;
@@ -441,6 +509,10 @@ const app = new Elysia()
               id: t.Numeric(),
               answerId: t.Numeric(),
             }),
+            response: {
+              204: t.Boolean(),
+              400: DataNotFoundError,
+            },
           }
         )
   )
