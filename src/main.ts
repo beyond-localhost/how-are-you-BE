@@ -3,9 +3,21 @@ import { resolveEnv } from "./env";
 import { createSQLiteDatabase } from "./domain/rdb";
 import { fetchKakaoToken, fetchKakaoUser } from "./lib/kakao";
 import {
-  DataNotFoundError,
   DataParseError,
-  FetchNotOkError,
+  InputRangeError,
+  JWTExpiredError,
+  JWTMalformedError,
+  dataNotFoundError,
+  dataParseError,
+  inputRangeError,
+  isError,
+  // DataNotFoundError,
+  // DataParseError,
+  // FetchNotOkError,
+  // JWTExpiredError,
+  // JWTMalformedError,
+  jwtExpiredError,
+  jwtMalformedError,
 } from "./core/error";
 import {
   createExternalIdentities,
@@ -64,7 +76,7 @@ const app = new Elysia()
       iss: env.Credential.JWTIssuer,
     })
   )
-  .use(cors())
+  .use(cors({ origin: ["http://localhost:5173"] }))
   .post(
     "/auth/kakao",
     ({ env, body: { destination }, set }) => {
@@ -72,9 +84,17 @@ const app = new Elysia()
 
       if (typeof state !== "string") {
         set.status = 400;
-        return "";
+        switch (state._tag) {
+          case "DataParseError": {
+            return dataParseError();
+          }
+          case "InputRangeError": {
+            return inputRangeError();
+          }
+        }
       }
 
+      set.status = 201;
       const redirectUri = `${env.Server.Host}:${env.Server.Port}/callback`;
       const KAKAO_AUTH_HOST = "https://kauth.kakao.com/oauth/authorize";
       const kakaoURL = new URL(KAKAO_AUTH_HOST);
@@ -90,7 +110,10 @@ const app = new Elysia()
       body: t.Object({
         destination: t.String(),
       }),
-      response: t.Object({ url: t.String() }),
+      response: {
+        201: t.Object({ url: t.String() }),
+        400: t.Union([DataParseError, InputRangeError]),
+      },
       detail: {
         tags: ["Auth"],
       },
@@ -118,27 +141,21 @@ const app = new Elysia()
         redirectUri,
       });
 
-      if (
-        tokenResponse instanceof DataParseError ||
-        tokenResponse instanceof FetchNotOkError
-      ) {
+      if (isError(tokenResponse)) {
         set.status = 400;
         return null;
       }
 
       const userResponse = await fetchKakaoUser(tokenResponse.access_token);
 
-      if (
-        userResponse instanceof DataParseError ||
-        userResponse instanceof FetchNotOkError
-      ) {
+      if (isError(userResponse)) {
         set.status = 400;
         return null;
       }
 
       const tokenInfo = await conn.transaction(async (tx) => {
         let user = await findUserByEmail(tx, userResponse.kakao_account.email);
-        if (user instanceof DataNotFoundError) {
+        if (isError(user)) {
           user = await createUser(tx, {
             email: userResponse.kakao_account.email,
           });
@@ -179,40 +196,89 @@ const app = new Elysia()
       headers: t.Object({
         authorization: t.TemplateLiteral("Bearer ${string}"),
       }),
+      response: {
+        401: t.Union([JWTMalformedError, JWTExpiredError]),
+      },
     },
     (app) =>
       app
-        .resolve(async ({ headers: { authorization }, jwt }) => {
-          const bearerToken = authorization.split(" ")[1];
-          if (bearerToken === undefined || bearerToken.length === 0) {
-            throw new Error("Bearer token should be defined");
+        .onBeforeHandle(async ({ headers: { authorization }, set }) => {
+          const bearer = authorization.slice(7);
+          console.log({ bearer });
+          if (!bearer) {
+            set.status = 401;
+            return jwtMalformedError();
           }
-          const jwtPayload = await jwt.verify(bearerToken);
+        })
+        .resolve(({ headers: { authorization } }) => {
+          console.log({ sliced: authorization.slice(7) });
+          return {
+            bearer: authorization.slice(7),
+          };
+        })
+        .onBeforeHandle(async ({ bearer, set, jwt }) => {
+          const jwtPayload = await jwt.verify(bearer);
+          console.log({ jwtPayload });
           if (jwtPayload === false) {
-            throw new Error("JWT should be defined");
+            set.status = 401;
+            return jwtExpiredError();
           }
           const userId = jwtPayload.sub;
           if (!userId || Number.isNaN(Number(userId))) {
-            throw new Error("userId not defined");
+            set.status = 401;
+            return jwtMalformedError();
+          }
+        })
+        .resolve(async ({ bearer, jwt, set }) => {
+          /**
+           * Below logic is same as onBeforeHandle
+           */
+          const jwtPayload = await jwt.verify(bearer);
+          if (jwtPayload === false) {
+            set.status = 401;
+            throw jwtExpiredError();
+          }
+          const userId = jwtPayload.sub;
+          if (!userId || Number.isNaN(Number(userId))) {
+            set.status = 401;
+            throw jwtMalformedError();
           }
 
           return {
             userId: Number(userId),
           };
         })
-        .get("/me", async ({ userId, conn, set }) => {
-          const user = await findUserById(conn, userId);
-          if (!user) {
-            set.status = 404;
-            return;
-          }
+        .get(
+          "/me",
+          async ({ userId, conn, set }) => {
+            const user = await findUserById(conn, userId);
+            if (!user) {
+              set.status = 404;
+              return dataNotFoundError();
+            }
 
-          return {
-            id: user.id,
-            email: user.email,
-            profile: user.profile || null,
-          };
-        })
+            set.status = 201;
+            return {
+              id: user.id,
+              email: user.email,
+              profile: user.profile,
+            };
+          }
+          // {
+          //   response: {
+          //     200: t.Object({
+          //       id: t.Number(),
+          //       email: t.String(),
+          //       profile: t.Nullable(
+          //         t.Object({
+          //           nickname: t.String(),
+          //           dateOfBirthYear: t.Number(),
+          //         })
+          //       ),
+          //     }),
+          //   },
+          // }
+        )
         .get(
           "/recommendation_nickname",
           async ({ set }) => {
@@ -230,13 +296,13 @@ const app = new Elysia()
           "/me/profile",
           async ({ body, conn, userId, set }) => {
             const userProfile = await findUserProfileByUserId(conn, userId);
-            if (!(userProfile instanceof DataNotFoundError)) {
+            if (!isError(userProfile)) {
               set.status = 400;
               return "";
             }
 
-            set.status = 201;
             return await conn.transaction(async (tx) => {
+              set.status = 201;
               const profile = await createUserProfile(tx, {
                 nickname: body.nickname,
                 dateOfBirthYear: body.dateOfBirthYear,
@@ -261,15 +327,15 @@ const app = new Elysia()
               dateOfBirthYear: t.Number({ minimum: 1900, maximum: 2024 }),
               jobs: t.Array(t.Number({ minimum: 1 })),
             }),
-            response: {
-              201: t.Object({
-                id: t.Number(),
-                nickname: t.String(),
-                dateOfBirthYear: t.Number(),
-                jobs: t.Array(t.Object({ id: t.Number(), job: t.String() })),
-              }),
-              400: t.String(),
-            },
+            // response: {
+            //   201: t.Object({
+            //     id: t.Number(),
+            //     nickname: t.String(),
+            //     dateOfBirthYear: t.Number(),
+            //     jobs: t.Array(t.Object({ id: t.Number(), job: t.String() })),
+            //   }),
+            //   400: t.String(),
+            // },
           }
         )
         .get("/me/profile", async ({ userId, conn, set }) => {

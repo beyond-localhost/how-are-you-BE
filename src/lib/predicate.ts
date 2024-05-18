@@ -1,15 +1,17 @@
-import { DataNotFoundError } from "../core/error";
+import { dataNotFoundError, isError } from "../core/error";
 
-export const head = <T>(array: T[]): T | DataNotFoundError => {
+export const head = <T>(
+  array: T[]
+): T | ReturnType<typeof dataNotFoundError> => {
   if (array[0] === undefined) {
-    return new DataNotFoundError("DataNotFoundError while calling head");
+    return dataNotFoundError();
   }
   return array[0];
 };
 
 export const dangerousHead = <T>(array: T[]): T => {
   const ret = head(array);
-  if (ret instanceof DataNotFoundError) {
+  if (isError(ret)) {
     throw ret;
   }
   return ret;

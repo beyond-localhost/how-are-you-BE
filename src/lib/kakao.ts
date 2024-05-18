@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { DataParseError, FetchNotOkError } from "../core/error";
+import {
+  type DataParseError,
+  type FetchNotOkError,
+  dataParseError,
+  fetchNotOkError,
+} from "../core/error";
 
 const KakaoTokenResponse = z.object({
   access_token: z.string(),
@@ -57,12 +62,12 @@ export const fetchKakaoToken = async (
   });
 
   if (!tokenResponse.ok) {
-    return new FetchNotOkError("Kakao Token Request failed");
+    return fetchNotOkError();
   }
 
   const parseResult = KakaoTokenResponse.safeParse(await tokenResponse.json());
   if (!parseResult.success) {
-    return new DataParseError("Kakao token data parsing failed");
+    return dataParseError();
   }
   return parseResult.data;
 };
@@ -80,12 +85,12 @@ export const fetchKakaoUser = async (
   });
 
   if (!userResponse.ok) {
-    return new FetchNotOkError("Kakao user request failed");
+    return fetchNotOkError();
   }
 
   const parseResult = KakaoUserResponse.safeParse(await userResponse.json());
   if (!parseResult.success) {
-    return new DataParseError("Kakao user data parsing failed");
+    return dataParseError();
   }
   return parseResult.data;
 };

@@ -20,7 +20,7 @@ export async function runSeed(dbPath = "sqlite.db") {
       .insert(questions)
       .values(question20240515.questions)
       .returning();
-    console.log(qs);
+
     await tx.insert(questionDistributions).values(
       qs.map((q, index) => {
         return {
