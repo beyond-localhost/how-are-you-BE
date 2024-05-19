@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "b42b9507-065c-4ef9-a1ae-ac91fe1735cf",
+  "id": "5ce2c6b2-e8fd-4690-ae37-ac138e73f49f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "email_verification_codes": {
@@ -21,10 +21,31 @@
           "notNull": true,
           "autoincrement": false,
           "default": "(CURRENT_TIMESTAMP)"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "email_verification_codes_user_id_users_id_fk": {
+          "name": "email_verification_codes_user_id_users_id_fk",
+          "tableFrom": "email_verification_codes",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -268,13 +289,6 @@
           "notNull": true,
           "autoincrement": false,
           "default": "(CURRENT_TIMESTAMP)"
-        },
-        "verification_code": {
-          "name": "verification_code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
         }
       },
       "indexes": {
@@ -286,21 +300,7 @@
           "isUnique": true
         }
       },
-      "foreignKeys": {
-        "users_verification_code_email_verification_codes_code_fk": {
-          "name": "users_verification_code_email_verification_codes_code_fk",
-          "tableFrom": "users",
-          "tableTo": "email_verification_codes",
-          "columnsFrom": [
-            "verification_code"
-          ],
-          "columnsTo": [
-            "code"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },

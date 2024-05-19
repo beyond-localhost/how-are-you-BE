@@ -38,10 +38,6 @@ export const users = sqliteTable("users", {
   lastSignedInAt: text("last_signed_in_at")
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
-  verificationCode: text("verification_code").references(
-    () => emailVerificationCodes.code,
-    { onDelete: "cascade" }
-  ),
 });
 
 export const usersRelations = relations(users, ({ one, many }) => {
@@ -49,6 +45,7 @@ export const usersRelations = relations(users, ({ one, many }) => {
     externalIdentities: many(externalIdentities),
     questionAnswers: many(questionAnswers),
     profile: one(userProfiles),
+    verificationCode: one(emailVerificationCodes),
   };
 });
 
@@ -57,13 +54,22 @@ export const emailVerificationCodes = sqliteTable("email_verification_codes", {
   verifiedAt: text("verified_at")
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
 });
 
 export const emailVerificationcodesRelations = relations(
   emailVerificationCodes,
   ({ one }) => {
     return {
-      user: one(users),
+      user: one(users, {
+        fields: [emailVerificationCodes.userId],
+        references: [users.id],
+      }),
     };
   }
 );
