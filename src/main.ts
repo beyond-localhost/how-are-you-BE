@@ -124,6 +124,14 @@ const app = new Elysia()
       },
     }
   )
+  .post("/auth/verification_code", ({ env, body: { email }, set }) => {}, {
+    body: t.Object({
+      email: t.String({ format: "email" }),
+    }),
+    detail: {
+      tags: ["Auth"],
+    },
+  })
   .get(
     "/callback",
     async ({ env, query: { code, state }, set, conn, jwt, redirect }) => {

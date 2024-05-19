@@ -10,7 +10,16 @@ const ErrorTag = {
   UnInterntionalError: "UnInterntionalError",
   UserAlreadyAnswerTodayQuestionError: "UserAlreadyAnswerTodayQuestionError",
   UserNotAnswerQuestionError: "UserNotAnswerQuestionError",
+
+  //
+  VerificationCodeNotExistedError: "VerificationCodeNotExistedError",
+  VerificationCodeNotMatchedError: "VerificationCodeNotMatchedError",
+  /**
+   * Not implemented yet
+   * VerificationCodeExpiredError = "VerificaitonCodeExpiredError"
+   */
 } as const;
+
 export const ErrorTagValues = Object.keys(ErrorTag);
 
 interface CoreError {
@@ -71,6 +80,24 @@ export type UserNotAnswerQuestionError = ReturnType<
 >;
 export const UserNotAnswerQuestionError = createErrorValidation(
   "UserNotAnswerQuestionError"
+);
+
+export const verificationCodeNotExistedError = () =>
+  ({ _tag: "VerificationCodeNotExistedError" } as const);
+export type VerificationCodeNotExistedError = ReturnType<
+  typeof verificationCodeNotExistedError
+>;
+export const VerificationCodeNotExistedError = createErrorValidation(
+  "VerificationCodeNotExistedError"
+);
+
+export const verificationCodeNotMatchedError = () =>
+  ({ _tag: "VerificationCodeNotMatchedError" } as const);
+export type VerificationCodeNotMatchedError = ReturnType<
+  typeof verificationCodeNotMatchedError
+>;
+export const VerificationCodeNotMatchedError = createErrorValidation(
+  "VerificationCodeNotMatchedError"
 );
 
 export const unIntentionalError = () =>
