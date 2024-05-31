@@ -8,6 +8,7 @@ import {
   InputRangeError,
   JWTExpiredError,
   JWTMalformedError,
+  QuestionAnswerModificationTimeLimitError,
   UnIntentionalError,
   UserAlreadyAnswerTodayQuestionError,
   dataNotFoundError,
@@ -16,6 +17,7 @@ import {
   isError,
   jwtExpiredError,
   jwtMalformedError,
+  questionAnswerModificationTimeLimitError,
   unIntentionalError,
   userAlreadyAnswerTodayQuestionError,
 } from "./core/error";
@@ -462,11 +464,27 @@ const app = new Elysia()
               userId,
               answerId
             );
+
             if (isError(existingAnswer)) {
               set.status = 404;
               return existingAnswer;
             }
-            return await updateUserAnswerById(conn, answerId, answer);
+
+            const now = new Date();
+            const existingAnswerCreatedAt = new Date(existingAnswer.createdAt);
+            const boundaryTime = new Date();
+            boundaryTime.setUTCHours(14, 59, 59, 0);
+
+            const isWithinBoundary =
+              existingAnswerCreatedAt <= boundaryTime &&
+              existingAnswerCreatedAt >= now;
+
+            if (isWithinBoundary) {
+              return await updateUserAnswerById(conn, answerId, answer);
+            }
+
+            set.status = 400;
+            return questionAnswerModificationTimeLimitError();
           },
           {
             params: t.Object({
@@ -486,6 +504,7 @@ const app = new Elysia()
                 isPublic: t.Boolean(),
               }),
               404: DataNotFoundError,
+              400: QuestionAnswerModificationTimeLimitError,
             },
           }
         )
