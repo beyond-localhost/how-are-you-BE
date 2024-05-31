@@ -29,8 +29,9 @@ import {
   findUserProfileByUserId,
   createUserProfile,
   createUserJobs,
-  findJobs,
+  findJobByIds,
   findUserByIdOrFailWithProfile,
+  findAllJobs,
 } from "./domain/user.repository";
 import jwt from "@elysiajs/jwt";
 import { deserializeOAuthState, serializeOAuthState } from "./lib/oauth";
@@ -307,6 +308,18 @@ const app = new Elysia()
             },
           }
         )
+        .get(
+          "/jobs",
+          async ({ conn }) => {
+            const jobs = await findAllJobs(conn);
+            return jobs.map(({ id, job }) => ({ id, name: job }));
+          },
+          {
+            response: {
+              200: t.Array(t.Object({ id: t.Number(), name: t.String() })),
+            },
+          }
+        )
         .post(
           "/me/profile",
           async ({ body, conn, userId, set }) => {
@@ -332,7 +345,7 @@ const app = new Elysia()
                   id: userId,
                   nickname: profile.nickname,
                   dateOfBirthYear: profile.dateOfBirthYear,
-                  jobs: await findJobs(tx, body.jobs),
+                  jobs: await findJobByIds(tx, body.jobs),
                 };
               });
               set.status = 201;

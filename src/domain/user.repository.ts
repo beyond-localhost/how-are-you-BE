@@ -91,7 +91,10 @@ export const findUserProfileByUserId = async (
 export const createUserJobs = async (tx: Conn, dto: CreateUserJob[]) =>
   tx.insert(userJobs).values(dto).returning();
 
-export const findJobs = async (
+export const findAllJobs = async (conn: Conn): Promise<Job[]> =>
+  conn.select().from(jobs);
+
+export const findJobByIds = async (
   conn: Conn,
   jobIds: Array<Job["id"]>
 ): Promise<Job[]> => conn.select().from(jobs).where(inArray(jobs.id, jobIds));
