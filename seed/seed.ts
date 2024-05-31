@@ -1,7 +1,8 @@
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { Database } from "bun:sqlite";
-import { jobs } from "../src/domain/user.entity";
+import { jobs, worries } from "../src/domain/user.entity";
 import jobJson from "./jobs.json";
+import worryJson from "./worries.json";
 import question20240515 from "./question-20240515.json";
 import {
   questionDistributions,
@@ -15,6 +16,7 @@ export async function runSeed(dbPath = "sqlite.db") {
 
   await db.transaction(async (tx) => {
     await tx.insert(jobs).values(jobJson.jobs);
+    await tx.insert(worries).values(worryJson.worries);
 
     const qs = await tx
       .insert(questions)

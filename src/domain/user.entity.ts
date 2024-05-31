@@ -103,6 +103,11 @@ export const userProfilesRelations = relations(
   }
 );
 
+export const worries = sqliteTable("worries", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  worry: text("worry").notNull().unique(),
+});
+
 export const jobs = sqliteTable("jobs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   job: text("job").notNull().unique(),
