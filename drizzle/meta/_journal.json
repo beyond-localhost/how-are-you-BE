@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1716092338066,
-      "tag": "0000_mysterious_skullbuster",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1716898002969,
-      "tag": "0001_right_old_lace",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1717158459654,
-      "tag": "0002_amused_ego",
+      "when": 1717167800356,
+      "tag": "0000_bouncy_stepford_cuckoos",
       "breakpoints": true
     }
   ]

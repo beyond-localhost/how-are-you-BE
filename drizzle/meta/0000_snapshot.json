@@ -1,59 +1,21 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "5ce2c6b2-e8fd-4690-ae37-ac138e73f49f",
+  "id": "b2a91e83-ff50-4952-8de0-adb06a8768c7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "email_verification_codes": {
-      "name": "email_verification_codes",
-      "columns": {
-        "code": {
-          "name": "code",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "verified_at": {
-          "name": "verified_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "email_verification_codes_user_id_users_id_fk": {
-          "name": "email_verification_codes_user_id_users_id_fk",
-          "tableFrom": "email_verification_codes",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
     "external_identities": {
       "name": "external_identities",
       "columns": {
         "id": {
           "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
           "type": "text",
           "primaryKey": true,
           "notNull": true,
@@ -69,13 +31,6 @@
         "provider": {
           "name": "provider",
           "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -98,95 +53,6 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "jobs": {
-      "name": "jobs",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "job": {
-          "name": "job",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {
-        "jobs_job_unique": {
-          "name": "jobs_job_unique",
-          "columns": [
-            "job"
-          ],
-          "isUnique": true
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "user_profile_jobs": {
-      "name": "user_profile_jobs",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "job_id": {
-          "name": "job_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "user_profile_jobs_user_id_user_profiles_id_fk": {
-          "name": "user_profile_jobs_user_id_user_profiles_id_fk",
-          "tableFrom": "user_profile_jobs",
-          "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "user_profile_jobs_job_id_jobs_id_fk": {
-          "name": "user_profile_jobs_job_id_jobs_id_fk",
-          "tableFrom": "user_profile_jobs",
-          "tableTo": "jobs",
-          "columnsFrom": [
-            "job_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {
-        "user_profile_jobs_job_id_user_id_pk": {
-          "columns": [
-            "job_id",
-            "user_id"
-          ],
-          "name": "user_profile_jobs_job_id_user_id_pk"
-        }
-      },
       "uniqueConstraints": {}
     },
     "user_profiles": {
@@ -213,6 +79,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "job_id": {
+          "name": "job_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "text",
@@ -230,15 +103,7 @@
           "default": "(CURRENT_TIMESTAMP)"
         }
       },
-      "indexes": {
-        "user_profiles_nickname_unique": {
-          "name": "user_profiles_nickname_unique",
-          "columns": [
-            "nickname"
-          ],
-          "isUnique": true
-        }
-      },
+      "indexes": {},
       "foreignKeys": {
         "user_profiles_id_users_id_fk": {
           "name": "user_profiles_id_users_id_fk",
@@ -252,9 +117,80 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
+        },
+        "user_profiles_job_id_jobs_id_fk": {
+          "name": "user_profiles_job_id_jobs_id_fk",
+          "tableFrom": "user_profiles",
+          "tableTo": "jobs",
+          "columnsFrom": [
+            "job_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "user_profiles_worries": {
+      "name": "user_profiles_worries",
+      "columns": {
+        "user_profile_id": {
+          "name": "user_profile_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "worry_id": {
+          "name": "worry_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_profiles_worries_user_profile_id_user_profiles_id_fk": {
+          "name": "user_profiles_worries_user_profile_id_user_profiles_id_fk",
+          "tableFrom": "user_profiles_worries",
+          "tableTo": "user_profiles",
+          "columnsFrom": [
+            "user_profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "user_profiles_worries_worry_id_worries_id_fk": {
+          "name": "user_profiles_worries_worry_id_worries_id_fk",
+          "tableFrom": "user_profiles_worries",
+          "tableTo": "worries",
+          "columnsFrom": [
+            "worry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "user_profiles_worries_user_profile_id_worry_id_pk": {
+          "columns": [
+            "user_profile_id",
+            "worry_id"
+          ],
+          "name": "user_profiles_worries_user_profile_id_worry_id_pk"
+        }
+      },
       "uniqueConstraints": {}
     },
     "users": {
@@ -360,7 +296,15 @@
           "default": "(CURRENT_TIMESTAMP)"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "created_at_idx": {
+          "name": "created_at_idx",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "question_answers_question_distribution_id_question_distributions_id_fk": {
           "name": "question_answers_question_distribution_id_question_distributions_id_fk",

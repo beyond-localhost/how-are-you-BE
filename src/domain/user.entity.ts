@@ -6,29 +6,32 @@ import {
   primaryKey,
 } from "drizzle-orm/sqlite-core";
 import { questionAnswers } from "./question.entity";
-import { jobs } from "./criteria.entity";
+import { jobs, worries } from "./criteria.entity";
 
 export const externalIdentities = sqliteTable("external_identities", {
   id: text("id").primaryKey().notNull(),
-  email: text("email").notNull(),
-  provider: text("provider").notNull().$type<"kakao">(),
-  userId: integer("user_id")
-    .notNull()
+  userId: text("user_id")
+    .primaryKey()
     .references(() => users.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+  email: text("email").notNull(),
+  provider: text("provider").notNull().$type<"kakao">(),
 });
 export type CreateExternalIdentity = typeof externalIdentities.$inferInsert;
 
-export const externalIdRelations = relations(externalIdentities, ({ one }) => {
-  return {
-    users: one(users, {
-      fields: [externalIdentities.userId],
-      references: [users.id],
-    }),
-  };
-});
+export const externalIdentitiesRelations = relations(
+  externalIdentities,
+  ({ one }) => {
+    return {
+      users: one(users, {
+        fields: [externalIdentities.userId],
+        references: [users.id],
+      }),
+    };
+  }
+);
 
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -53,8 +56,11 @@ export const userProfiles = sqliteTable("user_profiles", {
   id: integer("id")
     .primaryKey()
     .references(() => users.id),
-  nickname: text("nickname").notNull().unique(),
+  nickname: text("nickname").notNull(),
   dateOfBirthYear: integer("date_of_birth_year").notNull(),
+  jobId: integer("job_id")
+    .notNull()
+    .references(() => jobs.id),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
@@ -62,65 +68,55 @@ export const userProfiles = sqliteTable("user_profiles", {
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
 });
+
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type CreateUserProfile = typeof userProfiles.$inferInsert;
 
 export const userProfilesRelations = relations(
   userProfiles,
-  ({ many, one }) => {
+  ({ one, many }) => {
     return {
-      jobs: many(userJobs),
       user: one(users, {
         fields: [userProfiles.id],
         references: [users.id],
       }),
+      job: one(jobs, {
+        fields: [userProfiles.jobId],
+        references: [jobs.id],
+      }),
+      userProfilesToWorries: many(userProfilesToWorries),
     };
   }
 );
 
-export const jobsRelations = relations(jobs, ({ many }) => {
-  return {
-    users: many(userJobs),
-  };
-});
-
-export const userJobs = sqliteTable(
-  "user_profile_jobs",
+export const userProfilesToWorries = sqliteTable(
+  "user_profiles_worries",
   {
-    userId: integer("user_id")
+    userProfileId: integer("user_profile_id")
       .notNull()
-      .references(() => userProfiles.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    jobId: integer("job_id")
+      .references(() => userProfiles.id),
+    worryId: integer("worry_id")
       .notNull()
-      .references(() => jobs.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
+      .references(() => worries.id),
   },
-  (t) => {
-    return {
-      pk: primaryKey({ columns: [t.jobId, t.userId] }),
-    };
-  }
+  (t) => ({
+    pk: primaryKey({ columns: [t.userProfileId, t.worryId] }),
+  })
 );
 
-export const userJobsRelations = relations(userJobs, ({ one }) => {
-  return {
-    user: one(userProfiles, {
-      fields: [userJobs.userId],
+export const userProfilesToWorriesRelations = relations(
+  userProfilesToWorries,
+  ({ one }) => ({
+    userProfile: one(userProfiles, {
+      fields: [userProfilesToWorries.userProfileId],
       references: [userProfiles.id],
     }),
-    job: one(jobs, {
-      fields: [userJobs.jobId],
-      references: [jobs.id],
+    worry: one(worries, {
+      fields: [userProfilesToWorries.worryId],
+      references: [worries.id],
     }),
-  };
-});
-
-export type CreateUserJob = typeof userJobs.$inferInsert;
+  })
+);
 
 export type CreateUserDto = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;

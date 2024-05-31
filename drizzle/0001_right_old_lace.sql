@@ -1,1 +1,0 @@
-CREATE INDEX `created_at_idx` ON `question_answers` (`created_at`);
