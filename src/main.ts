@@ -36,8 +36,10 @@ import swagger from "@elysiajs/swagger";
 import {
   createTodayUserAnswer,
   deleteUserAnswerById,
+  findAllQuestionAnswersByUserId,
   findTodayQuestion,
   findTodayUsersAnswerByUserId,
+  findTotalQuestionsByUserId,
   findUserAnswerById,
   updateUserAnswerById,
 } from "./domain/question.repository";
@@ -63,7 +65,11 @@ const app = new Elysia()
         tags: [
           {
             name: "Auth",
-            description: "How Are You 서비스의 auth를 나타내요",
+            description: "Authentication related API",
+          },
+          {
+            name: "Question",
+            description: "The question related API",
           },
         ],
       },
@@ -507,6 +513,54 @@ const app = new Elysia()
             response: {
               204: t.Boolean(),
               400: DataNotFoundError,
+            },
+          }
+        )
+        .get(
+          "/questions/answers",
+          async ({ query, userId, set, conn }) => {
+            const { type, startDateTime, endDateTime, offset, limit } = query;
+            if (!startDateTime || !endDateTime) {
+              if (type === "duration") {
+                set.status = 400;
+                return inputRangeError();
+              }
+
+              const ret = await findAllQuestionAnswersByUserId(conn, {
+                userId,
+                limit,
+                offset,
+              });
+              const { count } = await findTotalQuestionsByUserId(conn, userId);
+              const hasMore = count > offset + limit;
+
+              return {
+                data: ret.map((v) => ({
+                  questionId: v.questionDistribution.questionId,
+                  question: v.questionDistribution.question.question,
+                  answerId: v.id,
+                  answer: v.answer,
+                  createdAtUTC: v.createdAt,
+                })),
+                hasMore,
+              };
+            }
+          },
+          {
+            query: t.Object({
+              type: t.Union([t.Literal("all"), t.Literal("duration")]),
+              startDateTime: t.Optional(t.String()),
+              endDateTime: t.Optional(t.String()),
+              offset: t.Number({ minimum: 1 }),
+              limit: t.Number({ minimum: 1 }),
+            }),
+            response: {
+              400: InputRangeError,
+            },
+            detail: {
+              description:
+                "type은 전체를 의미하는 all과 특정 기간을 의미하는 duration중 하나가 와야해요. duration이면 startDateTime과 endDateTime이 필수에요.",
+              tags: ["Question"],
             },
           }
         )
