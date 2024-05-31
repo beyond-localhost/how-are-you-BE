@@ -13,6 +13,8 @@ import {
   userJobs,
   type Job,
   jobs,
+  worries,
+  type Worry,
 } from "./user.entity";
 import { dangerousHead, head, nonNullish } from "../lib/predicate";
 import type { DataNotFoundError } from "../core/error";
@@ -93,6 +95,9 @@ export const createUserJobs = async (tx: Conn, dto: CreateUserJob[]) =>
 
 export const findAllJobs = async (conn: Conn): Promise<Job[]> =>
   conn.select().from(jobs);
+
+export const findAllWorries = async (conn: Conn): Promise<Worry[]> =>
+  conn.select().from(worries);
 
 export const findJobByIds = async (
   conn: Conn,

@@ -107,6 +107,7 @@ export const worries = sqliteTable("worries", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   worry: text("worry").notNull().unique(),
 });
+export type Worry = typeof worries.$inferSelect;
 
 export const jobs = sqliteTable("jobs", {
   id: integer("id").primaryKey({ autoIncrement: true }),

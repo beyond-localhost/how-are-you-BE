@@ -32,6 +32,7 @@ import {
   findJobByIds,
   findUserByIdOrFailWithProfile,
   findAllJobs,
+  findAllWorries,
 } from "./domain/user.repository";
 import jwt from "@elysiajs/jwt";
 import { deserializeOAuthState, serializeOAuthState } from "./lib/oauth";
@@ -313,6 +314,18 @@ const app = new Elysia()
           async ({ conn }) => {
             const jobs = await findAllJobs(conn);
             return jobs.map(({ id, job }) => ({ id, name: job }));
+          },
+          {
+            response: {
+              200: t.Array(t.Object({ id: t.Number(), name: t.String() })),
+            },
+          }
+        )
+        .get(
+          "/worries",
+          async ({ conn }) => {
+            const worries = await findAllWorries(conn);
+            return worries.map(({ id, worry }) => ({ id, name: worry }));
           },
           {
             response: {
