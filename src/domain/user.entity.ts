@@ -46,34 +46,8 @@ export const usersRelations = relations(users, ({ one, many }) => {
     externalIdentities: many(externalIdentities),
     questionAnswers: many(questionAnswers),
     profile: one(userProfiles),
-    verificationCode: one(emailVerificationCodes),
   };
 });
-
-export const emailVerificationCodes = sqliteTable("email_verification_codes", {
-  code: text("code").primaryKey().notNull(),
-  verifiedAt: text("verified_at")
-    .notNull()
-    .default(sql`(CURRENT_TIMESTAMP)`),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
-});
-
-export const emailVerificationcodesRelations = relations(
-  emailVerificationCodes,
-  ({ one }) => {
-    return {
-      user: one(users, {
-        fields: [emailVerificationCodes.userId],
-        references: [users.id],
-      }),
-    };
-  }
-);
 
 export const userProfiles = sqliteTable("user_profiles", {
   id: integer("id")
