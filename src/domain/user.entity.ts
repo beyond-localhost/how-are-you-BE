@@ -6,6 +6,7 @@ import {
   primaryKey,
 } from "drizzle-orm/sqlite-core";
 import { questionAnswers } from "./question.entity";
+import { jobs } from "./criteria.entity";
 
 export const externalIdentities = sqliteTable("external_identities", {
   id: text("id").primaryKey().notNull(),
@@ -102,19 +103,6 @@ export const userProfilesRelations = relations(
     };
   }
 );
-
-export const worries = sqliteTable("worries", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  worry: text("worry").notNull().unique(),
-});
-export type Worry = typeof worries.$inferSelect;
-
-export const jobs = sqliteTable("jobs", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  job: text("job").notNull().unique(),
-});
-
-export type Job = typeof jobs.$inferSelect;
 
 export const jobsRelations = relations(jobs, ({ many }) => {
   return {
