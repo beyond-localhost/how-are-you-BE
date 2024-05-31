@@ -10,6 +10,8 @@ const ErrorTag = {
   UnInterntionalError: "UnInterntionalError",
   UserAlreadyAnswerTodayQuestionError: "UserAlreadyAnswerTodayQuestionError",
   UserNotAnswerQuestionError: "UserNotAnswerQuestionError",
+  QuestionAnswerModificationTimeLimitError:
+    "QuestionAnswerModificationTimeLimitError",
 
   //
   VerificationCodeNotExistedError: "VerificationCodeNotExistedError",
@@ -104,6 +106,15 @@ export const unIntentionalError = () =>
   ({ _tag: ErrorTag.UnInterntionalError } as const);
 export type UnIntentionalError = ReturnType<typeof unIntentionalError>;
 export const UnIntentionalError = createErrorValidation("UnInterntionalError");
+
+export const questionAnswerModificationTimeLimitError = () =>
+  ({ _tag: ErrorTag.QuestionAnswerModificationTimeLimitError } as const);
+export type QuestionAnswerModificationTimeLimitError = ReturnType<
+  typeof questionAnswerModificationTimeLimitError
+>;
+export const QuestionAnswerModificationTimeLimitError = createErrorValidation(
+  "QuestionAnswerModificationTimeLimitError"
+);
 
 export const isError = (value: unknown): value is CoreError =>
   typeof value === "object" &&
