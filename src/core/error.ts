@@ -5,8 +5,7 @@ const ErrorTag = {
   DataNotFoundError: "DataNotFoundError",
   InputRangeError: "InputRangeError",
   JSONParseError: "JSONParseError",
-  JWTExpiredError: "JWTExpiredError",
-  JWTMalformedError: "JWTMalformedError",
+  InvalidSessionError: "InvalidSessionError",
   UnInterntionalError: "UnInterntionalError",
   UserAlreadyAnswerTodayQuestionError: "UserAlreadyAnswerTodayQuestionError",
   UserNotAnswerQuestionError: "UserNotAnswerQuestionError",
@@ -56,15 +55,10 @@ export const jsonParseError = () =>
 export type JsonParseError = ReturnType<typeof jsonParseError>;
 export const JsonParseError = createErrorValidation("JSONParseError");
 
-export const jwtExpiredError = () =>
-  ({ _tag: ErrorTag.JWTExpiredError } as const);
-export type JWTExpiredError = ReturnType<typeof jwtExpiredError>;
-export const JWTExpiredError = createErrorValidation("JWTExpiredError");
-
-export const jwtMalformedError = () =>
-  ({ _tag: ErrorTag.JWTMalformedError } as const);
-export type JWTMalformedError = ReturnType<typeof jwtMalformedError>;
-export const JWTMalformedError = createErrorValidation("JWTMalformedError");
+export const invalidSessionError = () =>
+  ({ _tag: ErrorTag.InvalidSessionError } as const);
+export type InvalidSessionError = ReturnType<typeof invalidSessionError>;
+export const InvalidSessionError = createErrorValidation("InvalidSessionError");
 
 export const userAlreadyAnswerTodayQuestionError = () =>
   ({ _tag: ErrorTag.UserAlreadyAnswerTodayQuestionError } as const);

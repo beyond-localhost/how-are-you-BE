@@ -1,25 +1,26 @@
 import { inputRangeError, dataParseError, jsonParseError } from "../core/error";
 import { z } from "zod";
+import type { LooselyValidURL } from "./url";
 
 const OAuthState = z.object({
   provider: z.enum(["kakao"]),
   destination: z.string(),
 });
+
 type OAuthState = z.infer<typeof OAuthState>;
 
-export const serializeOAuthState = (state: OAuthState) => {
-  const trimmedDestination = state.destination.trim();
-
-  if (trimmedDestination.length === 0) {
-    return inputRangeError();
-  }
-
+export const serializeOAuthState = (
+  provider: OAuthState["provider"],
+  destination: LooselyValidURL
+) => {
   const validationResult = OAuthState.safeParse({
-    provider: state.provider,
-    destination: trimmedDestination,
+    provider: provider,
+    destination: destination,
   });
   if (validationResult.success === false) {
-    return dataParseError();
+    throw new Error("OAuthState validation failed", {
+      cause: validationResult.error.errors,
+    });
   }
   return Buffer.from(JSON.stringify(validationResult.data)).toString("base64");
 };

@@ -1,47 +1,37 @@
 import { eq, inArray } from "drizzle-orm";
+import type { DataNotFoundError } from "../core/error";
+import { dangerousHead, head } from "../lib/predicate";
+import { jobs, worries, type Job, type Worry } from "./criteria.entity";
 import type { Conn } from "./rdb";
 import {
   externalIdentities,
+  sessions,
   userProfiles,
   users,
   type CreateExternalIdentity,
+  type CreateSessionDto,
   type CreateUserDto,
+  type CreateUserProfile,
+  type ExternalIdentity,
   type User,
   type UserProfile,
-  type CreateUserProfile,
-  type CreateUserJob,
-  userJobs,
-  type Job,
-  jobs,
-  worries,
-  type Worry,
 } from "./user.entity";
-import { dangerousHead, head, nonNullish } from "../lib/predicate";
-import type { DataNotFoundError } from "../core/error";
+
+export const findExternalIdentityWithUserById = async (
+  conn: Conn,
+  id: string
+): Promise<(ExternalIdentity & { users: User }) | undefined> =>
+  conn.query.externalIdentities.findFirst({
+    where: eq(externalIdentities.id, id),
+    with: {
+      users: true,
+    },
+  });
 
 export const createExternalIdentities = async (
   tx: Conn,
   dto: CreateExternalIdentity
 ) => tx.insert(externalIdentities).values(dto).returning().then(dangerousHead);
-
-export const findUserByEmail = async (
-  conn: Conn,
-  email: string
-): Promise<User | DataNotFoundError> =>
-  conn.select().from(users).where(eq(users.email, email)).then(head);
-
-export const findUserById = async (conn: Conn, id: number) =>
-  conn.query.users.findFirst({
-    where: eq(users.id, id),
-    with: {
-      profile: {
-        columns: {
-          nickname: true,
-          dateOfBirthYear: true,
-        },
-      },
-    },
-  });
 
 export const findUserByIdOrFail = async (
   conn: Conn,
@@ -49,33 +39,35 @@ export const findUserByIdOrFail = async (
 ): Promise<User> =>
   conn.select().from(users).where(eq(users.id, id)).then(dangerousHead);
 
-export const findUserByIdOrFailWithProfile = async (conn: Conn, id: number) =>
-  conn.query.userProfiles
-    .findFirst({
-      columns: {
-        createdAt: false,
-        updatedAt: false,
-      },
-      where: eq(userProfiles.id, id),
-      with: {
-        jobs: {
-          columns: {
-            jobId: false,
-            userId: false,
-          },
-          with: {
-            job: true,
-          },
+export const findUserBySessionId = async (conn: Conn, sessionId: number) =>
+  conn.query.users.findFirst({
+    with: {
+      profile: {
+        with: {
+          job: true,
         },
       },
-    })
-    .then(nonNullish);
+      sessions: {
+        where: eq(sessions.id, sessionId),
+      },
+    },
+  });
 
+// .select()
+// .from(users)
+// .innerJoin(sessions, eq(users.id, sessions.userId))
+// .leftJoin(userProfiles, eq(users.id, userProfiles.id))
+// .where(eq(sessions.id, sessionId))
+// .then(dangerousHead);
+// .innerJoin(sessions, eq(users.id, sessions.userId))
 export const createUser = async (
   conn: Conn,
   dto: CreateUserDto
 ): Promise<User> =>
   conn.insert(users).values(dto).returning().then(dangerousHead);
+
+export const createSession = async (tx: Conn, dto: CreateSessionDto) =>
+  tx.insert(sessions).values(dto).returning().then(dangerousHead);
 
 export const createUserProfile = async (tx: Conn, dto: CreateUserProfile) =>
   tx.insert(userProfiles).values(dto).returning().then(dangerousHead);
@@ -90,9 +82,6 @@ export const findUserProfileByUserId = async (
     .where(eq(userProfiles.id, userId))
     .then(head);
 
-export const createUserJobs = async (tx: Conn, dto: CreateUserJob[]) =>
-  tx.insert(userJobs).values(dto).returning();
-
 export const findAllJobs = async (conn: Conn): Promise<Job[]> =>
   conn.select().from(jobs);
 
@@ -103,3 +92,6 @@ export const findJobByIds = async (
   conn: Conn,
   jobIds: Array<Job["id"]>
 ): Promise<Job[]> => conn.select().from(jobs).where(inArray(jobs.id, jobIds));
+function then(dangerousHead: <T>(array: T[]) => T) {
+  throw new Error("Function not implemented.");
+}

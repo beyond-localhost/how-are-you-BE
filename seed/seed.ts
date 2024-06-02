@@ -1,14 +1,15 @@
-import { drizzle } from "drizzle-orm/bun-sqlite";
 import { Database } from "bun:sqlite";
-import { jobs, worries } from "../src/domain/user.entity";
-import jobJson from "./jobs.json";
-import worryJson from "./worries.json";
-import question20240515 from "./question-20240515.json";
+import { drizzle } from "drizzle-orm/bun-sqlite";
+
+import { sql } from "drizzle-orm";
+import { jobs, worries } from "../src/domain/criteria.entity";
 import {
   questionDistributions,
   questions,
 } from "../src/domain/question.entity";
-import { sql } from "drizzle-orm";
+import jobJson from "./jobs.json";
+import question20240515 from "./question-20240515.json";
+import worryJson from "./worries.json";
 
 export async function runSeed(dbPath = "sqlite.db") {
   const sqlite = new Database(dbPath);

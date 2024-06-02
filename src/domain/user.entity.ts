@@ -10,8 +10,8 @@ import { jobs, worries } from "./criteria.entity";
 
 export const externalIdentities = sqliteTable("external_identities", {
   id: text("id").primaryKey().notNull(),
-  userId: text("user_id")
-    .primaryKey()
+  userId: integer("user_id")
+    .notNull()
     .references(() => users.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
@@ -19,7 +19,9 @@ export const externalIdentities = sqliteTable("external_identities", {
   email: text("email").notNull(),
   provider: text("provider").notNull().$type<"kakao">(),
 });
+
 export type CreateExternalIdentity = typeof externalIdentities.$inferInsert;
+export type ExternalIdentity = typeof externalIdentities.$inferSelect;
 
 export const externalIdentitiesRelations = relations(
   externalIdentities,
@@ -35,7 +37,7 @@ export const externalIdentitiesRelations = relations(
 
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  email: text("email").notNull().unique(),
+  email: text("email").notNull(),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
@@ -49,6 +51,36 @@ export const usersRelations = relations(users, ({ one, many }) => {
     externalIdentities: many(externalIdentities),
     questionAnswers: many(questionAnswers),
     profile: one(userProfiles),
+    sessions: many(sessions),
+  };
+});
+
+export const sessions = sqliteTable("sessions", {
+  id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  revoked: integer("revoked", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+export type CreateSessionDto = typeof sessions.$inferInsert;
+export type Session = typeof sessions.$inferSelect;
+
+export const sessionsRelations = relations(sessions, ({ one }) => {
+  return {
+    user: one(users, {
+      fields: [sessions.userId],
+      references: [users.id],
+    }),
   };
 });
 
@@ -57,7 +89,7 @@ export const userProfiles = sqliteTable("user_profiles", {
     .primaryKey()
     .references(() => users.id),
   nickname: text("nickname").notNull(),
-  dateOfBirthYear: integer("date_of_birth_year").notNull(),
+  birthday: text("birthday").notNull(),
   jobId: integer("job_id")
     .notNull()
     .references(() => jobs.id),

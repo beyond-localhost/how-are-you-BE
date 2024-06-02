@@ -1,15 +1,24 @@
 CREATE TABLE `external_identities` (
 	`id` text PRIMARY KEY NOT NULL,
-	`user_id` text PRIMARY KEY NOT NULL,
+	`user_id` integer NOT NULL,
 	`email` text NOT NULL,
 	`provider` text NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE cascade ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `sessions` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`user_id` integer NOT NULL,
+	`revoked` integer DEFAULT false NOT NULL,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`updated_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `user_profiles` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`nickname` text NOT NULL,
-	`date_of_birth_year` integer NOT NULL,
+	`birthday` text NOT NULL,
 	`job_id` integer NOT NULL,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	`updated_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
@@ -58,6 +67,17 @@ CREATE TABLE `questions` (
 	`updated_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);--> statement-breakpoint
+CREATE TABLE `jobs` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`job` text NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `worries` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`worry` text NOT NULL
+);
+--> statement-breakpoint
 CREATE INDEX `created_at_idx` ON `question_answers` (`created_at`);--> statement-breakpoint
-CREATE UNIQUE INDEX `question_distributions_distribution_date_unique` ON `question_distributions` (`distribution_date`);
+CREATE UNIQUE INDEX `question_distributions_distribution_date_unique` ON `question_distributions` (`distribution_date`);--> statement-breakpoint
+CREATE UNIQUE INDEX `jobs_job_unique` ON `jobs` (`job`);--> statement-breakpoint
+CREATE UNIQUE INDEX `worries_worry_unique` ON `worries` (`worry`);
