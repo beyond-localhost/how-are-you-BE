@@ -4,7 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import { createSQLiteDatabase, type Conn } from "src/domain/rdb";
 import { resolveEnv, type Env } from "src/env";
 
-type Dependencies = {
+type StaticDependency = {
   Variables: {
     conn: Conn;
     env: Env;
@@ -13,14 +13,24 @@ type Dependencies = {
 const env = resolveEnv();
 const db = createSQLiteDatabase();
 
-const depsMiddleware = createMiddleware<Dependencies>(async (c, next) => {
-  c.set("env", env);
-  c.set("conn", db);
+export const depsMiddleware = createMiddleware<StaticDependency>(
+  async (c, next) => {
+    c.set("env", env);
+    c.set("conn", db);
+    await next();
+  }
+);
+
+type Foo = { ok: true; foo: "bar" } | { ok: false };
+export const userSessionMiddleware = createMiddleware<{
+  Variables: { foo: Foo };
+}>(async (c, next) => {
+  c.set("foo", { ok: true, foo: "bar" });
   await next();
 });
 
 export const honoApp = () => {
-  const app = new OpenAPIHono<Dependencies>({
+  const app = new OpenAPIHono<StaticDependency>({
     defaultHook: (result) => {
       if (result.success) {
         return;
@@ -31,8 +41,6 @@ export const honoApp = () => {
       throw err;
     },
   });
-
-  app.use(depsMiddleware);
 
   return app;
 };

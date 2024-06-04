@@ -1,32 +1,18 @@
 import cors from "@elysiajs/cors";
 import swagger from "@elysiajs/swagger";
-import { apiReference } from "@scalar/hono-api-reference";
+import {apiReference} from "@scalar/hono-api-reference";
 
-import { Elysia, t } from "elysia";
-import {
-  DataParseError,
-  InputRangeError,
-  InvalidSessionError,
-  dataParseError,
-  inputRangeError,
-  isError,
-} from "./core/error";
-import { createSQLiteDatabase } from "./domain/rdb";
-import {
-  createExternalIdentities,
-  createSession,
-  createUser,
-  findExternalIdentityWithUserById,
-} from "./domain/user.repository";
+import {Elysia, t} from "elysia";
+import {InvalidSessionError,} from "./core/error";
+import {createSQLiteDatabase} from "./domain/rdb";
 
-import { resolveEnv } from "./env";
-import { fetchKakaoToken, fetchKakaoUser } from "./lib/kakao";
-import { deserializeOAuthState } from "./lib/oauth";
+import {resolveEnv} from "./env";
 
-import { cors as honoCors } from "hono/cors";
+import {cors as honoCors} from "hono/cors";
 import auth from "./controllers/auth.controllers";
-import { honoApp } from "./runtime/hono";
+import {depsMiddleware, honoApp} from "./runtime/hono";
 import user from "./controllers/user.controllers";
+
 const env = resolveEnv();
 const db = createSQLiteDatabase();
 
@@ -39,6 +25,7 @@ app.use(
     exposeHeaders: ["content-type"],
   })
 );
+app.use(depsMiddleware);
 app.route("/", auth);
 app.route("/", user);
 app.get(
@@ -55,6 +42,7 @@ app.doc("/swagger", {
   tags: [
     { name: "Auth", description: "Authentication related API" },
     { name: "User", description: "User related API" },
+    { name: "Misc", description: "The miscellaneous data related API" },
     { name: "Question", description: "The question related API" },
   ],
 });
@@ -143,85 +131,7 @@ const appDeprecated = new Elysia({
   //     },
   //   }
   // )
-  .get(
-    "/callback",
-    async ({ env, query: { code, state }, set, conn, redirect, cookie }) => {
-      const oauthState = deserializeOAuthState(state);
-      if ("_tag" in oauthState) {
-        set.status = 400;
-        return null;
-      }
 
-      // TODO-START: remove duplicated variables
-      const redirectUri = `${env.Server.Host}:${env.Server.Port}/callback`;
-      // TODO-END: remove duplicated variables
-
-      const clientId = env.Credential.KakaoRestAPIKey;
-      const clientSecret = env.Credential.KakaoSecret;
-      const tokenResponse = await fetchKakaoToken({
-        clientId,
-        clientSecret,
-        code,
-        redirectUri,
-      });
-
-      if (isError(tokenResponse)) {
-        set.status = 400;
-        return null;
-      }
-
-      const userResponse = await fetchKakaoUser(tokenResponse.access_token);
-
-      if (isError(userResponse)) {
-        set.status = 400;
-        return null;
-      }
-
-      // 특정 externalIdentity로 가입 -> binds users.email -> externalIdentity.email
-
-      const session = await conn.transaction(async (tx) => {
-        let externalIdentityWithUser = await findExternalIdentityWithUserById(
-          conn,
-          userResponse.id.toString()
-        );
-
-        const user =
-          externalIdentityWithUser?.users ||
-          (await createUser(tx, { email: userResponse.kakao_account.email }));
-
-        if (!externalIdentityWithUser) {
-          await createExternalIdentities(tx, {
-            id: userResponse.id.toString(),
-            provider: "kakao",
-            email: userResponse.kakao_account.email,
-            userId: user.id,
-          });
-        }
-
-        return createSession(tx, {
-          userId: user.id,
-        });
-      });
-
-      if (cookie.sid) {
-        cookie.sid.value = "hello world";
-        // cookie.sid.httpOnly = true;
-        // TODO
-        // resolve valid maxAge
-        // cookie.sid.maxAge = 60 * 60 * 24 * 7;
-        // cookie.sid.secure = true;
-      }
-
-      // cookie.sid.set = session.id;
-      // cookie.sid.value = session.id;
-      const destinationURL = new URL(oauthState.destination);
-
-      return redirect(destinationURL.toString());
-    },
-    {
-      query: t.Object({ code: t.String(), state: t.String() }),
-    }
-  )
   .guard(
     {
       cookie: t.Cookie(
@@ -236,54 +146,17 @@ const appDeprecated = new Elysia({
         401: InvalidSessionError,
       },
     },
-    (app) =>
-      app
-        // .resolve(async ({ cookie: { sid } }) => {
-        //   console.log({ sid });
-        //   console.log(sid.secrets);
-        //   const val = sid.value;
-        //   console.log({ val });
-        //   return {
-        //     sessionId: val,
-        //   };
-        // })
-        .get("/me", async ({ cookie: { sid } }) => {
-          console.log({ sid });
-          console.log(sid.value);
-          return true;
-        })
-    // .get(
-    //   "/me",
-    //   async ({ userId, conn, set }) => {
-    //     const user = await findUserById(conn, userId);
-    //     if (!user) {
-    //       set.status = 404;
-    //       return dataNotFoundError();
-    //     }
+    (app) => app
+    // .resolve(async ({ cookie: { sid } }) => {
+    //   console.log({ sid });
+    //   console.log(sid.secrets);
+    //   const val = sid.value;
+    //   console.log({ val });
+    //   return {
+    //     sessionId: val,
+    //   };
+    // })
 
-    //     set.status = 200;
-    //     return {
-    //       id: user.id,
-    //       email: user.email,
-    //       profile: user.profile,
-    //     };
-    //   },
-    //   {
-    //     response: {
-    //       200: t.Object({
-    //         id: t.Number(),
-    //         email: t.String(),
-    //         profile: t.Nullable(
-    //           t.Object({
-    //             nickname: t.String(),
-    //             dateOfBirthYear: t.Number(),
-    //           })
-    //         ),
-    //       }),
-    //       404: DataNotFoundError,
-    //     },
-    //   }
-    // )
     // .get(
     //   "/recommendation_nickname",
     //   async ({ set }) => {

@@ -7,6 +7,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { questionAnswers } from "./question.entity";
 import { jobs, worries } from "./criteria.entity";
+import type { DateTime } from "src/lib/date";
 
 export const externalIdentities = sqliteTable("external_identities", {
   id: text("id").primaryKey().notNull(),
@@ -89,7 +90,8 @@ export const userProfiles = sqliteTable("user_profiles", {
     .primaryKey()
     .references(() => users.id),
   nickname: text("nickname").notNull(),
-  birthday: text("birthday").notNull(),
+  birthday: text("birthday").notNull().$type<DateTime>(),
+  gender: text("gender").$type<"male" | "female">(),
   jobId: integer("job_id")
     .notNull()
     .references(() => jobs.id),
@@ -102,7 +104,7 @@ export const userProfiles = sqliteTable("user_profiles", {
 });
 
 export type UserProfile = typeof userProfiles.$inferSelect;
-export type CreateUserProfile = typeof userProfiles.$inferInsert;
+export type CreateUserProfileDto = typeof userProfiles.$inferInsert;
 
 export const userProfilesRelations = relations(
   userProfiles,

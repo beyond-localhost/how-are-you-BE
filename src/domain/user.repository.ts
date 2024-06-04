@@ -11,7 +11,7 @@ import {
   type CreateExternalIdentity,
   type CreateSessionDto,
   type CreateUserDto,
-  type CreateUserProfile,
+  type CreateUserProfileDto,
   type ExternalIdentity,
   type User,
   type UserProfile,
@@ -45,6 +45,11 @@ export const findUserBySessionId = async (conn: Conn, sessionId: number) =>
       profile: {
         with: {
           job: true,
+          userProfilesToWorries: {
+            with: {
+              worry: true,
+            },
+          },
         },
       },
       sessions: {
@@ -52,14 +57,6 @@ export const findUserBySessionId = async (conn: Conn, sessionId: number) =>
       },
     },
   });
-
-// .select()
-// .from(users)
-// .innerJoin(sessions, eq(users.id, sessions.userId))
-// .leftJoin(userProfiles, eq(users.id, userProfiles.id))
-// .where(eq(sessions.id, sessionId))
-// .then(dangerousHead);
-// .innerJoin(sessions, eq(users.id, sessions.userId))
 export const createUser = async (
   conn: Conn,
   dto: CreateUserDto
@@ -69,7 +66,7 @@ export const createUser = async (
 export const createSession = async (tx: Conn, dto: CreateSessionDto) =>
   tx.insert(sessions).values(dto).returning().then(dangerousHead);
 
-export const createUserProfile = async (tx: Conn, dto: CreateUserProfile) =>
+export const createUserProfile = async (tx: Conn, dto: CreateUserProfileDto) =>
   tx.insert(userProfiles).values(dto).returning().then(dangerousHead);
 
 export const findUserProfileByUserId = async (
@@ -81,17 +78,3 @@ export const findUserProfileByUserId = async (
     .from(userProfiles)
     .where(eq(userProfiles.id, userId))
     .then(head);
-
-export const findAllJobs = async (conn: Conn): Promise<Job[]> =>
-  conn.select().from(jobs);
-
-export const findAllWorries = async (conn: Conn): Promise<Worry[]> =>
-  conn.select().from(worries);
-
-export const findJobByIds = async (
-  conn: Conn,
-  jobIds: Array<Job["id"]>
-): Promise<Job[]> => conn.select().from(jobs).where(inArray(jobs.id, jobIds));
-function then(dangerousHead: <T>(array: T[]) => T) {
-  throw new Error("Function not implemented.");
-}
