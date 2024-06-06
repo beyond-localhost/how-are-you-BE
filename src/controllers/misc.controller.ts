@@ -1,16 +1,9 @@
-import { deleteCookie, getSignedCookie } from "hono/cookie";
 import { findAllJobs, findAllWorries } from "src/domain/misc.repository";
-import { findUserBySessionId } from "src/domain/user.repository";
-import { safeAsyncRun } from "src/lib/async";
-import {
-  createRoute,
-  honoApp,
-  userSessionMiddleware,
-  z,
-} from "src/runtime/hono";
+import { createRoute, honoAuthApp, userSessionMiddleware, z } from "src/runtime/hono";
 import nickname from "src/static/nickname.json";
+import { unAuthorizedResponse } from "./response.ts";
 
-const misc = honoApp();
+const misc = honoAuthApp();
 
 misc.openapi(
   createRoute({
@@ -27,56 +20,30 @@ misc.openapi(
                 z.object({
                   id: z.number(),
                   name: z.string(),
-                })
+                }),
               ),
             }),
           },
         },
       },
-      401: {
-        description:
-          "세션 값이 없거나 / 유효하지 않은 경우에 해당합니다. 이경우 첨부된 쿠키도 전부 지워집니다!",
-        content: {
-          "application/json": {
-            schema: z.object({
-              code: z.literal(401),
-              error: z.string(),
-            }),
-          },
-        },
-      },
+      401: unAuthorizedResponse,
     },
     middleware: [userSessionMiddleware],
   }),
   async (c) => {
-    const stringifiedSid = await safeAsyncRun(() =>
-      getSignedCookie(c, c.var.env.Credential.JWTSecret, "sid")
-    );
-    if (!stringifiedSid) {
-      await deleteCookie(c, "sid");
-      return c.json(
-        { code: 401 as const, error: "유효하지 않은 세션입니다" },
-        401
-      );
-    }
-
-    const user = await findUserBySessionId(c.var.conn, Number(stringifiedSid));
-    if (!user) {
-      await deleteCookie(c, "sid");
-      return c.json(
-        { code: 401 as const, error: "유효하지 않은 세션입니다" },
-        401
-      );
+    if (!c.var.sessionResult.ok) {
+      return c.json({ code: 401 as const, error: "유효하지 않은 세션입니다" }, 401);
     }
 
     const jobs = await findAllJobs(c.var.conn);
+
     return c.json(
       {
         jobs: jobs.map((job) => ({ id: job.id, name: job.job })),
       },
-      200
+      200,
     );
-  }
+  },
 );
 
 misc.openapi(
@@ -86,8 +53,7 @@ misc.openapi(
     path: "/worries",
     responses: {
       200: {
-        description:
-          "걱정들을 반환합니다. 걱정 마세요, 우리 삶에서 걱정은 별로 없으니까요",
+        description: "걱정들을 반환합니다. 걱정 마세요, 우리 삶에서 걱정은 별로 없으니까요",
         content: {
           "application/json": {
             schema: z.object({
@@ -95,45 +61,18 @@ misc.openapi(
                 z.object({
                   id: z.number(),
                   name: z.string(),
-                })
+                }),
               ),
             }),
           },
         },
       },
-      401: {
-        description:
-          "세션 값이 없거나 / 유효하지 않은 경우에 해당합니다. 이경우 첨부된 쿠키도 전부 지워집니다!",
-        content: {
-          "application/json": {
-            schema: z.object({
-              code: z.literal(401),
-              error: z.string(),
-            }),
-          },
-        },
-      },
+      401: unAuthorizedResponse,
     },
   }),
   async (c) => {
-    const stringifiedSid = await safeAsyncRun(() =>
-      getSignedCookie(c, c.var.env.Credential.JWTSecret, "sid")
-    );
-    if (!stringifiedSid) {
-      await deleteCookie(c, "sid");
-      return c.json(
-        { code: 401 as const, error: "유효하지 않은 세션입니다" },
-        401
-      );
-    }
-
-    const user = await findUserBySessionId(c.var.conn, Number(stringifiedSid));
-    if (!user) {
-      await deleteCookie(c, "sid");
-      return c.json(
-        { code: 401 as const, error: "유효하지 않은 세션입니다" },
-        401
-      );
+    if (!c.var.sessionResult.ok) {
+      return c.json({ code: 401 as const, error: "유효하지 않은 세션입니다" }, 401);
     }
 
     const worries = await findAllWorries(c.var.conn);
@@ -141,9 +80,9 @@ misc.openapi(
       {
         worries: worries.map((worry) => ({ id: worry.id, name: worry.worry })),
       },
-      200
+      200,
     );
-  }
+  },
 );
 
 misc.openapi(
@@ -160,43 +99,14 @@ misc.openapi(
           },
         },
       },
-      401: {
-        description:
-          "세션 값이 없거나 / 유효하지 않은 경우에 해당합니다. 이경우 첨부된 쿠키도 전부 지워집니다!",
-        content: {
-          "application/json": {
-            schema: z.object({
-              code: z.literal(401),
-              error: z.string(),
-            }),
-          },
-        },
-      },
+      401: unAuthorizedResponse,
     },
   }),
   async (c) => {
-    const stringifiedSid = await safeAsyncRun(() =>
-      getSignedCookie(c, c.var.env.Credential.JWTSecret, "sid")
-    );
-    if (!stringifiedSid) {
-      await deleteCookie(c, "sid");
-      return c.json(
-        { code: 401 as const, error: "유효하지 않은 세션입니다" },
-        401
-      );
+    if (!c.var.sessionResult.ok) {
+      return c.json({ code: 401 as const, error: "유효하지 않은 세션입니다" }, 401);
     }
-
-    const user = await findUserBySessionId(c.var.conn, Number(stringifiedSid));
-    if (!user) {
-      await deleteCookie(c, "sid");
-      return c.json(
-        { code: 401 as const, error: "유효하지 않은 세션입니다" },
-        401
-      );
-    }
-    const ret =
-      nickname.ret[Math.floor(Math.random() * nickname.ret.length)] ||
-      "춤추는 세명";
+    const ret = nickname.ret[Math.floor(Math.random() * nickname.ret.length)] || "춤추는 세명";
     return c.json({ nickname: ret }, 200);
-  }
+  },
 );
