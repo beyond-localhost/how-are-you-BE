@@ -8,7 +8,7 @@ import type { DateTime } from "../lib/date.ts";
 export const findTodayQuestion = async (conn: Conn, userId: number) =>
   conn.query.questionDistributions
     .findFirst({
-      where: eq(questionDistributions.distributionDate, sql`(CURRENT_DATE)`),
+      where: eq(questionDistributions.distributionDate, sql`(date('now','localtime'))`),
       with: {
         question: true,
         answer: {
@@ -27,7 +27,7 @@ export const findTodayQuestionWithUserAnswer = (conn: Conn, userId: number) =>
       userAnswer: questionAnswers.answer,
     })
     .from(questionDistributions)
-    .where(eq(questionDistributions.distributionDate, sql`(CURRENT_DATE)`))
+    .where(eq(questionDistributions.distributionDate, sql`(date('now','localtime'))`))
     .innerJoin(questions, eq(questionDistributions.questionId, questions.id))
     .leftJoin(
       questionAnswers,
@@ -61,7 +61,7 @@ export const findTodayUsersAnswerByUserId = async (conn: Conn, userId: number) =
     .findFirst({
       where: and(
         eq(questionAnswers.userId, userId),
-        gte(questionAnswers.createdAt, sql`(CURRENT_DATE)`),
+        gte(questionAnswers.createdAt, sql`(date('now','localtime'))`),
         lte(questionAnswers.createdAt, sql.raw(`date('now', '+1 day')`)),
       ),
     })
