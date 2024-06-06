@@ -110,3 +110,5 @@ misc.openapi(
     return c.json({ nickname: ret }, 200);
   },
 );
+
+export default misc;

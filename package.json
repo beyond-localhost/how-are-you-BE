@@ -12,7 +12,7 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "dev": "TZ=utc bun --watch ./src/main.ts",
+    "dev": "bun --watch ./src/main.ts",
     "build": "bun build src/index.ts",
     "start": "NODE_ENV=production bun src/index.ts",
     "test": "bun test",

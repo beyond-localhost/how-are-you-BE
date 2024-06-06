@@ -1,5 +1,3 @@
-import cors from "@elysiajs/cors";
-import swagger from "@elysiajs/swagger";
 import { apiReference } from "@scalar/hono-api-reference";
 
 import { Elysia, t } from "elysia";
@@ -12,6 +10,8 @@ import { cors as honoCors } from "hono/cors";
 import auth from "./controllers/auth.controllers";
 import { depsMiddleware, honoApp } from "./runtime/hono";
 import user from "./controllers/user.controllers";
+import question from "./controllers/question.controller.ts";
+import misc from "./controllers/misc.controller.ts";
 
 const env = resolveEnv();
 const db = createSQLiteDatabase();
@@ -28,6 +28,8 @@ app.use(
 app.use(depsMiddleware);
 app.route("/", auth);
 app.route("/", user);
+app.route("/", question);
+app.route("/", misc);
 app.get(
   "/docs",
   apiReference({
@@ -52,16 +54,7 @@ export default {
   fetch: app.fetch,
 };
 
-const appDeprecated = new Elysia({
-  cookie: {
-    secrets: env.Credential.JWTSecret,
-    sign: ["sid"],
-    path: "/",
-    sameSite: "strict",
-    httpOnly: true,
-  },
-  // aot: false,
-}).guard(
+const appDeprecated = new Elysia().guard(
   {
     cookie: t.Cookie(
       {
@@ -76,121 +69,6 @@ const appDeprecated = new Elysia({
     },
   },
   (app) => app,
-  // .resolve(async ({ cookie: { sid } }) => {
-  //   console.log({ sid });
-  //   console.log(sid.secrets);
-  //   const val = sid.value;
-  //   console.log({ val });
-  //   return {
-  //     sessionId: val,
-  //   };
-  // })
-
-  // .get(
-  //   "/recommendation_nickname",
-  //   async ({ set }) => {
-  //     const ret =
-  //       nickname.ret[Math.floor(Math.random() * nickname.ret.length)];
-  //     if (ret === undefined) {
-  //       set.status = 404;
-  //       return dataNotFoundError();
-  //     }
-  //     set.status = 200;
-  //     return { nickname: ret };
-  //   },
-  //   {
-  //     response: {
-  //       200: t.Object({ nickname: t.String() }),
-  //       404: DataNotFoundError,
-  //     },
-  //   }
-  // )
-  // .post(
-  //   "/me/profile",
-  //   async ({ body, conn, userId, set }) => {
-  //     const userProfile = await findUserProfileByUserId(conn, userId);
-  //     if (!isError(userProfile)) {
-  //       set.status = 404;
-  //       return dataNotFoundError();
-  //     }
-
-  //     try {
-  //       const ret = await conn.transaction(async (tx) => {
-  //         const profile = await createUserProfile(tx, {
-  //           nickname: body.nickname,
-  //           dateOfBirthYear: body.dateOfBirthYear,
-  //           id: userId,
-  //         });
-  //         await createUserJobs(
-  //           tx,
-  //           body.jobs.map((jobId) => ({ jobId, userId }))
-  //         );
-
-  //         return {
-  //           id: userId,
-  //           nickname: profile.nickname,
-  //           dateOfBirthYear: profile.dateOfBirthYear,
-  //           jobs: await findJobByIds(tx, body.jobs),
-  //         };
-  //       });
-  //       set.status = 201;
-  //       return ret;
-  //     } catch (err) {
-  //       set.status = 500;
-  //       return unIntentionalError();
-  //     }
-  //   },
-  //   {
-  //     body: t.Object({
-  //       nickname: t.String({ minLength: 1, maxLength: 20 }),
-  //       dateOfBirthYear: t.Number({ minimum: 1900, maximum: 2024 }),
-  //       jobs: t.Array(t.Number({ minimum: 1 })),
-  //     }),
-  //     response: {
-  //       201: t.Object({
-  //         id: t.Number(),
-  //         nickname: t.String(),
-  //         dateOfBirthYear: t.Number(),
-  //         jobs: t.Array(t.Object({ id: t.Number(), job: t.String() })),
-  //       }),
-  //       404: DataNotFoundError,
-  //       500: UnIntentionalError,
-  //     },
-  //   }
-  // )
-  // .get(
-  //   "/me/profile",
-  //   async ({ userId, conn, set }) => {
-  //     const ret = await findUserByIdOrFailWithProfile(conn, userId);
-  //     if (isError(ret)) {
-  //       set.status = 404;
-  //       return ret;
-  //     }
-
-  //     return {
-  //       ...ret,
-  //       jobs: ret.jobs
-  //         .map((v) => v.job)
-  //         .map(({ id, job }) => ({ id, name: job })),
-  //     };
-  //   },
-  //   {
-  //     response: {
-  //       200: t.Object({
-  //         id: t.Number(),
-  //         nickname: t.String(),
-  //         dateOfBirthYear: t.Number(),
-  //         jobs: t.Array(
-  //           t.Object({
-  //             id: t.Number(),
-  //             name: t.String(),
-  //           })
-  //         ),
-  //       }),
-  //       404: DataNotFoundError,
-  //     },
-  //   }
-  // )
   // .get(
   //   "/questions/today",
   //   async ({ conn, set }) => {
