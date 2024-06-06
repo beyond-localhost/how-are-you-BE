@@ -132,3 +132,54 @@ export const updateQuestionAnswer = (conn: Conn, distributionId: number, answer:
     .where(eq(questionAnswers.id, distributionId))
     .returning()
     .then(dangerousHead);
+
+export const findUserAnswers = async (
+  conn: Conn,
+  userId: number,
+  paging: { startDate: DateTime; endDate: DateTime; cursor?: number; limit?: number },
+) => {
+  const { endDate, startDate, limit = 30, cursor } = paging;
+  const ret = await conn.query.questionAnswers.findMany({
+    where: and(
+      eq(questionAnswers.userId, userId),
+      between(questionAnswers.createdAt, startDate, endDate),
+      cursor ? gte(questionAnswers.id, cursor) : undefined,
+    ),
+    with: {
+      questionDistribution: {
+        with: {
+          question: true,
+        },
+      },
+    },
+    limit,
+  });
+
+  const hasMore = ret.length === limit;
+  const data = ret.map((v) => {
+    return {
+      questionId: v.questionDistribution.id,
+      question: v.questionDistribution.question.question,
+      answerId: v.id,
+      answer: v.answer,
+    };
+  });
+
+  if (hasMore) {
+    const lastData = data.at(-1);
+    if (lastData === undefined) {
+      throw new Error("");
+    }
+    return {
+      data: data,
+      hasMore: true as const,
+      nextCursor: lastData.questionId,
+    };
+  }
+
+  return {
+    data: data,
+    hasMore: false as const,
+    nextCursor: undefined,
+  };
+};

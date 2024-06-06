@@ -22,3 +22,7 @@ export function assertDateTime(str: string): asserts str is DateTime {
     });
   }
 }
+
+export function isLeapYear(year: number) {
+  return new Date(year, 1, 29).getDate() === 29;
+}

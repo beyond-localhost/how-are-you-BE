@@ -16,13 +16,22 @@ export async function runSeed(dbPath = "sqlite.db") {
     await tx.insert(jobs).values(jobJson.jobs);
     await tx.insert(worries).values(worryJson.worries);
 
-    const qs = await tx.insert(questions).values(question20240515.questions).returning();
+    const qs = await tx
+      .insert(questions)
+      .values(question20240515.questions)
+      .returning()
+      .then((v) =>
+        v.reduce<{ id: number; question: string; createdAt: string; updatedAt: string }[]>((acc, __, _, arr) => {
+          acc.push(...arr);
+          return acc;
+        }, []),
+      );
 
     await tx.insert(questionDistributions).values(
       qs.map((q, index) => {
         return {
           questionId: q.id,
-          distributionDate: sql.raw(`date('now', 'localtime', '+${index} day')`),
+          distributionDate: sql.raw(`date('now', 'localtime', '-${index} day')`),
         };
       }),
     );
