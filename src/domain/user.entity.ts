@@ -127,6 +127,8 @@ export const userProfilesToWorries = sqliteTable(
   }),
 );
 
+export type CreateUserProfilesToWorries = typeof userProfilesToWorries.$inferInsert;
+
 export const userProfilesToWorriesRelations = relations(userProfilesToWorries, ({ one }) => ({
   userProfile: one(userProfiles, {
     fields: [userProfilesToWorries.userProfileId],

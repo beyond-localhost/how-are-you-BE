@@ -1,4 +1,4 @@
-import { createUserProfile, findUserProfileByUserId } from "src/domain/user.repository";
+import { createUserProfile, createUserWorries, findUserProfileByUserId } from "src/domain/user.repository";
 import { type DateTime, makeDateTime } from "src/lib/date";
 import { createRoute, honoAuthApp, z } from "src/runtime/hono";
 import { unAuthorizedResponse } from "./response.ts";
@@ -118,12 +118,18 @@ user.openapi(
     }
 
     const gender = genderCandidate === "none" ? null : genderCandidate;
-    await createUserProfile(c.var.conn, {
+    const profile = await createUserProfile(c.var.conn, {
       gender,
       jobId,
       nickname,
       birthday: birthdayDateTime,
     });
+
+    await createUserWorries(
+      c.var.conn,
+      worryIds.map((worryId) => ({ worryId, userProfileId: profile.id })),
+    );
+
     return c.json({ ok: true as const }, 201);
   },
 );

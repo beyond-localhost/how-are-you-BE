@@ -6,11 +6,13 @@ import {
   type CreateSessionDto,
   type CreateUserDto,
   type CreateUserProfileDto,
+  type CreateUserProfilesToWorries,
   externalIdentities,
   type ExternalIdentity,
   sessions,
   type User,
   userProfiles,
+  userProfilesToWorries,
   users,
 } from "./user.entity";
 
@@ -42,6 +44,8 @@ export const createSession = async (tx: Conn, dto: CreateSessionDto) =>
 
 export const createUserProfile = async (tx: Conn, dto: CreateUserProfileDto) =>
   tx.insert(userProfiles).values(dto).returning().then(dangerousHead);
+export const createUserWorries = async (tx: Conn, worries: CreateUserProfilesToWorries[]) =>
+  tx.insert(userProfilesToWorries).values(worries).returning();
 
 export const findUserProfileByUserId = async (conn: Conn, userId: number) =>
   conn.query.userProfiles.findFirst({
