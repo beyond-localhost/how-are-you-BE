@@ -4,7 +4,7 @@ export function convertDateToDateTime(date: Date): DateTime {
 
 export type DateTime = `${number}-${number}-${number}`;
 export function makeDateTime(year: number, month: number, day: number): DateTime {
-  const candidate = `${year}-${month}-${day}`;
+  const candidate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   assertDateTime(candidate);
   return candidate;
 }

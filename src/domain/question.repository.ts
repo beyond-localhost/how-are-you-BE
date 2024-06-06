@@ -5,42 +5,25 @@ import { and, between, count, eq, gte, lte, sql } from "drizzle-orm";
 import { dangerousHead, nonNullish } from "../lib/predicate";
 import type { DateTime } from "../lib/date.ts";
 
-export const findTodayQuestion = async (conn: Conn, userId: number) =>
-  conn.query.questionDistributions
-    .findFirst({
-      where: eq(questionDistributions.distributionDate, sql`(date('now','localtime'))`),
-      with: {
-        question: true,
-        answer: {
-          where: (answer, { eq }) => eq(answer.userId, userId),
-        },
-      },
-    })
-    .then(nonNullish);
-
-export const findTodayQuestionWithUserAnswer = (conn: Conn, userId: number) =>
+export const findTodayQuestion = (conn: Conn) =>
   conn
     .select({
-      questionId: questionDistributions.id,
+      distributionId: questionDistributions.id,
       question: questions.question,
-      userAnswerId: questionAnswers.id,
-      userAnswer: questionAnswers.answer,
     })
     .from(questionDistributions)
     .where(eq(questionDistributions.distributionDate, sql`(date('now','localtime'))`))
-    .innerJoin(questions, eq(questionDistributions.questionId, questions.id))
-    .leftJoin(
-      questionAnswers,
-      and(eq(questionAnswers.questionDistributionId, questionDistributions.id), eq(questionAnswers.userId, userId)),
-    )
-    .then(dangerousHead);
+    .innerJoin(questions, eq(questionDistributions.questionId, questions.id));
 
-export const findUserAnswerById = async (conn: Conn, userId: number, distributionId: number) =>
-  conn.query.questionAnswers
-    .findFirst({
-      where: and(eq(questionAnswers.questionDistributionId, distributionId), eq(questionAnswers.userId, userId)),
-    })
-    .then(nonNullish);
+export const findUserAnswerByQuestionId = async (conn: Conn, userId: number, distributionId: number) =>
+  conn.query.questionAnswers.findFirst({
+    where: and(eq(questionAnswers.questionDistributionId, distributionId), eq(questionAnswers.userId, userId)),
+  });
+
+export const findUserQuestionAnswerByQuestionId = async (conn: Conn, userId: number, distributionId: number) =>
+  conn.query.questionAnswers.findFirst({
+    where: and(eq(questionAnswers.questionDistributionId, distributionId), eq(questionAnswers.userId, userId)),
+  });
 
 export const updateUserAnswerById = async (conn: Conn, answerId: number, newAnswer: string) =>
   conn
@@ -135,19 +118,17 @@ export const findOneQuestionById = (conn: Conn, distributionId: number, dateTime
   conn.query.questionDistributions.findFirst({
     where: and(
       eq(questionDistributions.id, distributionId),
-      dateTime ? gte(questionDistributions.distributionDate, dateTime) : undefined,
+      dateTime ? eq(questionDistributions.distributionDate, dateTime) : undefined,
     ),
   });
 
-export const upsertQuestionAnswer = (conn: Conn, dto: CreateQuestionAnswer) =>
+export const createQuestionAnswer = (conn: Conn, dto: CreateQuestionAnswer) =>
+  conn.insert(questionAnswers).values(dto).returning().then(dangerousHead);
+
+export const updateQuestionAnswer = (conn: Conn, distributionId: number, answer: string) =>
   conn
-    .insert(questionAnswers)
-    .values(dto)
-    .onConflictDoUpdate({
-      target: [questionAnswers.questionDistributionId, questionAnswers.userId],
-      set: {
-        answer: dto.answer,
-      },
-    })
+    .update(questionAnswers)
+    .set({ answer })
+    .where(eq(questionAnswers.id, distributionId))
     .returning()
     .then(dangerousHead);
