@@ -23,14 +23,10 @@
     "db:init": "rm -rf ./sqlite.db && bun run migration:up && bun run seed"
   },
   "dependencies": {
-    "@elysiajs/cors": "^1.0.2",
-    "@elysiajs/jwt": "^1.0.2",
-    "@elysiajs/swagger": "^1.0.5",
     "@hono/swagger-ui": "^0.2.2",
     "@hono/zod-openapi": "^0.14.1",
     "@scalar/hono-api-reference": "^0.5.61",
     "drizzle-orm": "^0.30.10",
-    "elysia": "^1.0.15",
     "hono": "^4.4.2",
     "zod": "^3.23.8"
   }
