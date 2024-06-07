@@ -1,4 +1,3 @@
-import { isError } from "src/core/error";
 import {
   createExternalIdentities,
   createSession,
@@ -63,10 +62,7 @@ auth.openapi(
       state = serializeOAuthState("kakao", brandedDestination);
     } catch (e) {
       console.error(e);
-      return c.json(
-        { code: 400 as const, error: "잘못된 URL을 입력하였습니다" },
-        400
-      );
+      return c.json({ code: 400 as const, error: "잘못된 URL을 입력하였습니다" }, 400);
     }
 
     const redirectUri = `${c.var.env.Server.Host}:${c.var.env.Server.Port}/callback`;
@@ -74,21 +70,17 @@ auth.openapi(
     const kakaoURL = new URL(KAKAO_AUTH_HOST);
     kakaoURL.searchParams.set("redirect_uri", redirectUri);
     kakaoURL.searchParams.set("response_type", "code");
-    kakaoURL.searchParams.set(
-      "client_id",
-      c.var.env.Credential.KakaoRestAPIKey
-    );
+    kakaoURL.searchParams.set("client_id", c.var.env.Credential.KakaoRestAPIKey);
     kakaoURL.searchParams.set("state", state);
     return c.json({ url: kakaoURL }, 201);
-  }
+  },
 );
 auth.openapi(
   createRoute({
     tags: ["Auth"],
     method: "get",
     deprecated: true,
-    description:
-      "This is only used for internal oauth process. Do not use this.",
+    description: "This is only used for internal oauth process. Do not use this.",
     path: "/callback",
     request: {
       query: z.object({
@@ -116,9 +108,6 @@ auth.openapi(
   async (c) => {
     const { code, state } = c.req.valid("query");
     const deserializedStateResult = deserializeOAuthState(state);
-    if (isError(deserializedStateResult)) {
-      return c.json({ code: 400, error: "잘못된 요청입니다" }, 400);
-    }
     const env = c.var.env;
     const conn = c.var.conn;
 
@@ -131,24 +120,11 @@ auth.openapi(
       code,
       redirectUri,
     });
-
-    if (isError(tokenResponse)) {
-      return c.json({ code: 400, error: "잘못된 요청입니다" }, 400);
-    }
     const userResponse = await fetchKakaoUser(tokenResponse.access_token);
-
-    if (isError(userResponse)) {
-      return c.json({ code: 400, error: "잘못된 요청입니다" }, 400);
-    }
-
     const session = await conn.transaction(async (tx) => {
-      let externalIdentityWithUser = await findExternalIdentityWithUserById(
-        conn,
-        userResponse.id.toString()
-      );
+      let externalIdentityWithUser = await findExternalIdentityWithUserById(conn, userResponse.id.toString());
       const user =
-        externalIdentityWithUser?.users ||
-        (await createUser(tx, { email: userResponse.kakao_account.email }));
+        externalIdentityWithUser?.users || (await createUser(tx, { email: userResponse.kakao_account.email }));
 
       if (!externalIdentityWithUser) {
         await createExternalIdentities(tx, {
@@ -164,24 +140,15 @@ auth.openapi(
     });
 
     const destinationURL = new URL(deserializedStateResult.destination);
-    const maxAge =
-      destinationURL.searchParams.get("autoLogin") === "T"
-        ? 60 * 60 * 24 * 30
-        : undefined;
+    const maxAge = destinationURL.searchParams.get("autoLogin") === "T" ? 60 * 60 * 24 * 30 : undefined;
 
-    await setSignedCookie(
-      c,
-      "sid",
-      session.id.toString(),
-      env.Credential.JWTSecret,
-      {
-        httpOnly: true,
-        sameSite: "strict",
-        maxAge,
-      }
-    );
+    await setSignedCookie(c, "sid", session.id.toString(), env.Credential.JWTSecret, {
+      httpOnly: true,
+      sameSite: "strict",
+      maxAge,
+    });
     return c.redirect(destinationURL.toString(), 302);
-  }
+  },
 );
 
 export default auth;

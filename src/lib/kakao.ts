@@ -1,12 +1,5 @@
 import { z } from "zod";
 
-import {
-  type DataParseError,
-  type FetchNotOkError,
-  dataParseError,
-  fetchNotOkError,
-} from "../core/error";
-
 const KakaoTokenResponse = z.object({
   access_token: z.string(),
   token_type: z.literal("bearer"),
@@ -32,9 +25,7 @@ type FetchKakaoTokenOptions = {
 };
 // export async function fetchKakaoToken(options: FetchKakaoTokenOptions): Promis {}
 
-export const fetchKakaoToken = async (
-  options: FetchKakaoTokenOptions
-): Promise<KakaoTokenResponse | FetchNotOkError | DataParseError> => {
+export const fetchKakaoToken = async (options: FetchKakaoTokenOptions): Promise<KakaoTokenResponse> => {
   const KAKAO_TOKEN_HOST = "https://kauth.kakao.com/oauth/token";
   const KAKAO_CONTENT_TYPE = "application/x-www-form-urlencoded";
   const KAKAO_GRANT_TYPE = "authorization_code";
@@ -62,19 +53,17 @@ export const fetchKakaoToken = async (
   });
 
   if (!tokenResponse.ok) {
-    return fetchNotOkError();
+    throw new Error(`Failed to fetch Kakao token: ${tokenResponse.statusText}`);
   }
 
   const parseResult = KakaoTokenResponse.safeParse(await tokenResponse.json());
   if (!parseResult.success) {
-    return dataParseError();
+    throw new Error(`Failed to parse Kakao token: ${parseResult.error.errors}`);
   }
   return parseResult.data;
 };
 
-export const fetchKakaoUser = async (
-  accessToken: string
-): Promise<KakaoUserResponse | FetchNotOkError | DataParseError> => {
+export const fetchKakaoUser = async (accessToken: string): Promise<KakaoUserResponse> => {
   const KAKAO_USER_HOST = "https://kapi.kakao.com/v2/user/me";
   const requestHeader = new Headers();
   requestHeader.set("authorization", `Bearer ${accessToken}`);
@@ -85,12 +74,12 @@ export const fetchKakaoUser = async (
   });
 
   if (!userResponse.ok) {
-    return fetchNotOkError();
+    throw new Error(`Failed to fetch Kakao user: ${userResponse.statusText}`);
   }
 
   const parseResult = KakaoUserResponse.safeParse(await userResponse.json());
   if (!parseResult.success) {
-    return dataParseError();
+    throw new Error(`Failed to parse Kakao user: ${parseResult.error.errors}`);
   }
   return parseResult.data;
 };

@@ -1,4 +1,3 @@
-import { inputRangeError, dataParseError, jsonParseError } from "../core/error";
 import { z } from "zod";
 import type { LooselyValidURL } from "./url";
 
@@ -9,15 +8,12 @@ const OAuthState = z.object({
 
 type OAuthState = z.infer<typeof OAuthState>;
 
-export const serializeOAuthState = (
-  provider: OAuthState["provider"],
-  destination: LooselyValidURL
-) => {
+export const serializeOAuthState = (provider: OAuthState["provider"], destination: LooselyValidURL) => {
   const validationResult = OAuthState.safeParse({
     provider: provider,
     destination: destination,
   });
-  if (validationResult.success === false) {
+  if (!validationResult.success) {
     throw new Error("OAuthState validation failed", {
       cause: validationResult.error.errors,
     });
@@ -29,19 +25,14 @@ export const deserializeOAuthState = (state: string) => {
   const trimmedState = state.trim();
 
   if (trimmedState.length === 0) {
-    return inputRangeError();
+    throw new Error("The oauthState must be type of base64 string");
   }
 
-  let json: unknown;
-  try {
-    json = JSON.parse(Buffer.from(trimmedState, "base64").toString());
-  } catch (e) {
-    return jsonParseError();
-  }
+  const json = JSON.parse(Buffer.from(trimmedState, "base64").toString());
 
   const result = OAuthState.safeParse(json);
   if (!result.success) {
-    return dataParseError();
+    throw new Error(`Failed to parse OAuthState: ${result.error.errors}`);
   }
   return result.data;
 };
