@@ -15,14 +15,12 @@ misc.openapi(
         description: "직업 목록을 반환합니다",
         content: {
           "application/json": {
-            schema: z.object({
-              jobs: z.array(
-                z.object({
-                  id: z.number(),
-                  name: z.string(),
-                }),
-              ),
-            }),
+            schema: z.array(
+              z.object({
+                id: z.number(),
+                name: z.string(),
+              }),
+            ),
           },
         },
       },
@@ -38,9 +36,7 @@ misc.openapi(
     const jobs = await findAllJobs(c.var.conn);
 
     return c.json(
-      {
-        jobs: jobs.map((job) => ({ id: job.id, name: job.job })),
-      },
+      jobs.map((job) => ({ id: job.id, name: job.job })),
       200,
     );
   },
