@@ -52,14 +52,12 @@ misc.openapi(
         description: "걱정들을 반환합니다. 걱정 마세요, 우리 삶에서 걱정은 별로 없으니까요",
         content: {
           "application/json": {
-            schema: z.object({
-              worries: z.array(
-                z.object({
-                  id: z.number(),
-                  name: z.string(),
-                }),
-              ),
-            }),
+            schema: z.array(
+              z.object({
+                id: z.number(),
+                name: z.string(),
+              }),
+            ),
           },
         },
       },
@@ -73,9 +71,7 @@ misc.openapi(
 
     const worries = await findAllWorries(c.var.conn);
     return c.json(
-      {
-        worries: worries.map((worry) => ({ id: worry.id, name: worry.worry })),
-      },
+      worries.map((worry) => ({ id: worry.id, name: worry.worry })),
       200,
     );
   },
