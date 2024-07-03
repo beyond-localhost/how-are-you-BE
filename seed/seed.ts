@@ -1,7 +1,5 @@
-import { Database } from "bun:sqlite";
-import { drizzle } from "drizzle-orm/bun-sqlite";
-
 import { sql } from "drizzle-orm";
+import { createDrizzle, createSQLite } from "../src/domain/rdb";
 import { jobs, worries } from "../src/domain/criteria.entity";
 import { questionDistributions, questions } from "../src/domain/question.entity";
 import jobJson from "./jobs.json";
@@ -9,9 +7,7 @@ import question20240515 from "./question-20240515.json";
 import worryJson from "./worries.json";
 
 export async function runSeed(dbPath = "sqlite.db") {
-  const sqlite = new Database(dbPath);
-  const db = drizzle(sqlite, { logger: true });
-
+  const db = createDrizzle(createSQLite(dbPath));
   await db.transaction(async (tx) => {
     await tx.insert(jobs).values(jobJson.jobs);
     await tx.insert(worries).values(worryJson.worries);

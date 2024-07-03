@@ -1,12 +1,12 @@
-import { createRoute, OpenAPIHono, type RouteConfig, z } from "@hono/zod-openapi";
+import { OpenAPIHono, createRoute, z, type RouteConfig } from "@hono/zod-openapi";
+import { deleteCookie, getSignedCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
-import { type Conn, createSQLiteDatabase } from "src/domain/rdb";
-import { type Env, resolveEnv } from "src/env";
+import { createDrizzle, createSQLite, type Conn } from "src/domain/rdb";
+import { resolveEnv, type Env } from "src/env";
 import type { Session, User } from "../domain/user.entity.ts";
-import { safeAsyncRun } from "../lib/async.ts";
-import { deleteCookie, getSignedCookie } from "hono/cookie";
 import { findUserBySessionId } from "../domain/user.repository.ts";
+import { safeAsyncRun } from "../lib/async.ts";
 
 export type UnAuthorizedResponseConfig = RouteConfig["responses"]["401"];
 
@@ -16,12 +16,10 @@ type StaticDependency = {
     env: Env;
   };
 };
-const env = resolveEnv();
-const db = createSQLiteDatabase();
 
 export const depsMiddleware = createMiddleware<StaticDependency>(async (c, next) => {
-  c.set("env", env);
-  c.set("conn", db);
+  c.set("env", resolveEnv());
+  c.set("conn", createDrizzle(createSQLite()));
   await next();
 });
 
@@ -80,4 +78,4 @@ export const honoAuthApp = () => {
   return app;
 };
 
-export { z, createRoute };
+export { createRoute, z };
