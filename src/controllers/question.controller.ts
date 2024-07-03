@@ -1,5 +1,3 @@
-import { createRoute, honoAuthApp, z } from "../runtime/hono.ts";
-import { unAuthorizedResponse } from "./response.ts";
 import {
   createQuestionAnswer,
   deleteUserAnswerById,
@@ -8,11 +6,13 @@ import {
   findTodayQuestion,
   findUserAnswerByQuestionId,
   findUserAnswers,
+  findUserAnswersExceptMeByQuestionId,
   findUserQuestionAnswerByQuestionId,
   updateQuestionAnswer,
 } from "../domain/question.repository.ts";
-import { convertDateToDateTime, type DateTime, isLeapYear, makeDateTime } from "../lib/date.ts";
-import { questionAnswers } from "../domain/question.entity.ts";
+import { convertDateToDateTime, isLeapYear, makeDateTime } from "../lib/date.ts";
+import { createRoute, honoAuthApp, z } from "../runtime/hono.ts";
+import { unAuthorizedResponse } from "./response.ts";
 
 const question = honoAuthApp();
 
@@ -149,6 +149,69 @@ question.openapi(
       answer: answer,
     });
     return c.json({ answerId: newAnswer.id, answer: answer }, 201);
+  },
+);
+
+question.openapi(
+  createRoute({
+    tags: ["Question"],
+    method: "get",
+    summary: "질문에 대한 답변을 조회합니다.",
+    path: "/questions/{id}/answers",
+    request: {
+      params: z.object({ id: z.string().transform(Number) }),
+      query: z.object({ type: z.union([z.literal("me"), z.literal("other")]) }),
+    },
+    responses: {
+      200: {
+        description:
+          "질문 아이디에 대한 답변을 반환합니다. 쿼리스트링 타입이 'me'인 경우, 유저가 작성한 리턴합니다. 유저가 작성하지 않았으면 null을 리턴합니다. 쿼리스트링 타입이 all인 경우 'isPublic'이 true인 모든 답변들을 반환합니다. 이경우 유저가 작성한 답변은 조회하지 않습니다.",
+        content: {
+          "application/json": {
+            schema: z.discriminatedUnion("queryType", [
+              z.object({
+                queryType: z.literal("me"),
+                answer: z.object({ id: z.number(), answer: z.string(), ownerId: z.number() }).nullable(),
+              }),
+              z.object({
+                queryType: z.literal("other"),
+                answers: z.array(z.object({ id: z.number(), answer: z.string(), ownerId: z.number() })),
+              }),
+            ]),
+          },
+        },
+      },
+      401: unAuthorizedResponse,
+    },
+  }),
+  async (c) => {
+    if (!c.var.sessionResult.ok) {
+      return c.json({ code: 401 as const, error: "유효하지 않은 세션입니다" }, 401);
+    }
+
+    const { id } = c.req.valid("param");
+    const { type } = c.req.valid("query");
+
+    if (type === "me") {
+      const answer = await findUserAnswerByQuestionId(c.var.conn, c.var.sessionResult.data.userId, id);
+      return c.json(
+        {
+          queryType: "me" as const,
+          answer: answer ? { id: answer.id, answer: answer.answer, ownerId: c.var.sessionResult.data.userId } : null,
+        },
+        200,
+      );
+    }
+
+    return c.json(
+      {
+        queryType: "other" as const,
+        answers: (await findUserAnswersExceptMeByQuestionId(c.var.conn, c.var.sessionResult.data.userId, id)).map(
+          (ret) => ({ id: ret.id, answer: ret.answer, ownerId: ret.userId }),
+        ),
+      },
+      200,
+    );
   },
 );
 

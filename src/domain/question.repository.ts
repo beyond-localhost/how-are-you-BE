@@ -1,7 +1,7 @@
 import type { Conn } from "./rdb";
 
 import { questionAnswers, questionDistributions, type CreateQuestionAnswer, questions } from "./question.entity";
-import { and, between, count, eq, gte, lte, sql } from "drizzle-orm";
+import { and, between, count, eq, gte, lte, ne, sql } from "drizzle-orm";
 import { dangerousHead, nonNullish } from "../lib/predicate";
 import type { DateTime } from "../lib/date.ts";
 
@@ -19,6 +19,16 @@ export const findUserAnswerByQuestionId = async (conn: Conn, userId: number, dis
   conn.query.questionAnswers.findFirst({
     where: and(eq(questionAnswers.questionDistributionId, distributionId), eq(questionAnswers.userId, userId)),
   });
+
+export const findUserAnswersExceptMeByQuestionId = async (conn: Conn, userId: number, distributionId: number) => {
+  return conn.query.questionAnswers.findMany({
+    where: and(
+      eq(questionAnswers.questionDistributionId, distributionId),
+      ne(questionAnswers.userId, userId),
+      eq(questionAnswers.isPublic, true),
+    ),
+  });
+};
 
 export const findUserQuestionAnswerByQuestionId = async (conn: Conn, userId: number, distributionId: number) =>
   conn.query.questionAnswers.findFirst({
@@ -186,7 +196,7 @@ export const findUserAnswers = async (
 
 export const findAnswerById = async (conn: Conn, answerId: number) => {
   return conn.query.questionAnswers.findFirst({
-    where: eq(questionAnswers.id, answerId),
+    where: eq(questionAnswers.questionDistributionId, answerId),
     with: { questionDistribution: { with: { question: true } } },
   });
 };
