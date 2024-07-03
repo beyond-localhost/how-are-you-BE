@@ -3,6 +3,7 @@ import { unAuthorizedResponse } from "./response.ts";
 import {
   createQuestionAnswer,
   deleteUserAnswerById,
+  findAnswerById,
   findOneQuestionById,
   findTodayQuestion,
   findUserAnswerByQuestionId,
@@ -196,37 +197,6 @@ question.openapi(
 
 question.openapi(
   createRoute({
-    method: "post",
-    path: "/questions/seed",
-    responses: {
-      204: {
-        description: "Seed data inserted successfully",
-      },
-      401: unAuthorizedResponse,
-    },
-  }),
-  async (c) => {
-    const user = c.var.sessionResult;
-    if (!user.ok) {
-      return c.json({ code: 401 as const, error: "유효하지 않은 세션입니다" }, 401);
-    }
-    const from = await c.var.conn.query.questionDistributions.findMany({
-      orderBy: (dis, { asc }) => [asc(dis.distributionDate)],
-    });
-    await c.var.conn.insert(questionAnswers).values(
-      from.map((v) => ({
-        userId: user.data.userId,
-        answer: "seed",
-        questionDistributionId: v.id,
-      })),
-    );
-
-    return c.json({}, 204);
-  },
-);
-
-question.openapi(
-  createRoute({
     tags: ["Question"],
     method: "get",
     path: "/questions/answers",
@@ -320,6 +290,78 @@ question.openapi(
       limit,
     });
     return c.json(ret, 200);
+  },
+);
+
+question.openapi(
+  createRoute({
+    tags: ["Question"],
+    method: "get",
+    path: "/questions/answers/{answerId}",
+    summary: "유저가 남긴 답변에 대해 필터링 과정을 거쳐 반환합니다.",
+    request: {
+      params: z.object({
+        answerId: z.number(),
+      }),
+    },
+    responses: {
+      401: unAuthorizedResponse,
+      403: {
+        description: "작성자는 답변을 비공개설정하였고, 다른 유저가 이 답변을 보려고 조회하였을 때 리턴합니다",
+        content: {
+          "application/json": {
+            schema: z.object({ code: z.literal(403), error: z.string() }),
+          },
+        },
+      },
+      404: {
+        description: "해당 id에 바인딩 된 답변이 없을 때 리턴합니다",
+        content: {
+          "application/json": {
+            schema: z.object({
+              code: z.literal(404),
+              error: z.string(),
+            }),
+          },
+        },
+      },
+      200: {
+        description:
+          "유저가 보낸 요청에 대해 더이상 페이지네이션할 것이 없다면 hasMore가 false로 반환됩니다. hasMore는 클라이언트가 더이상 페칭을 할지 안할지를 결정하는 기준입니다.",
+        content: {
+          "application/json": {
+            schema: z.object({
+              id: z.number(),
+              answer: z.string(),
+              question: z.string(),
+            }),
+          },
+        },
+      },
+    },
+  }),
+  async (c) => {
+    const { answerId } = c.req.valid("param");
+    const user = c.var.sessionResult;
+    if (!user.ok) {
+      return c.json({ code: 401 as const, error: "유효하지 않은 세션입니다" }, 401);
+    }
+    const { userId } = user.data;
+    const answer = await findAnswerById(c.var.conn, answerId);
+    if (!answer) {
+      return c.json({ code: 404 as const, error: "존재하지 않는 답변입니다" }, 404);
+    }
+    if (!answer.isPublic && answer.userId !== userId) {
+      return c.json({ code: 403 as const, error: "이 답변에 접근할 수 없습니다" }, 403);
+    }
+    return c.json(
+      {
+        answer: answer.answer,
+        id: answer.id,
+        question: answer.questionDistribution.question.question,
+      },
+      200,
+    );
   },
 );
 

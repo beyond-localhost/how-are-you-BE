@@ -183,3 +183,10 @@ export const findUserAnswers = async (
     nextCursor: undefined,
   };
 };
+
+export const findAnswerById = async (conn: Conn, answerId: number) => {
+  return conn.query.questionAnswers.findFirst({
+    where: eq(questionAnswers.id, answerId),
+    with: { questionDistribution: { with: { question: true } } },
+  });
+};
