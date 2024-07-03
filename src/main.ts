@@ -1,18 +1,15 @@
 import { apiReference } from "@scalar/hono-api-reference";
 
-import { createSQLiteDatabase } from "./domain/rdb";
-
 import { resolveEnv } from "./env";
 
 import { cors } from "hono/cors";
 import auth from "./controllers/auth.controllers";
-import { depsMiddleware, honoApp } from "./runtime/hono";
-import user from "./controllers/user.controllers";
-import question from "./controllers/question.controller.ts";
 import misc from "./controllers/misc.controller.ts";
+import question from "./controllers/question.controller.ts";
+import user from "./controllers/user.controllers";
+import { depsMiddleware, honoApp } from "./runtime/hono";
 
 const env = resolveEnv();
-const db = createSQLiteDatabase();
 
 const app = honoApp();
 app.use(
