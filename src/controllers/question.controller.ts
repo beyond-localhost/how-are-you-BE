@@ -3,6 +3,7 @@ import {
   deleteUserAnswerById,
   findAnswerById,
   findOneQuestionById,
+  findQuestionByDistributionId,
   findTodayQuestion,
   findUserAnswerByQuestionId,
   findUserAnswers,
@@ -156,28 +157,21 @@ question.openapi(
   createRoute({
     tags: ["Question"],
     method: "get",
-    summary: "질문에 대한 답변을 조회합니다.",
+    summary: "질문에 대한 유저의 답변을 조회합니다.",
     path: "/questions/{id}/answers",
     request: {
       params: z.object({ id: z.string().transform(Number) }),
-      query: z.object({ type: z.union([z.literal("me"), z.literal("other")]) }),
     },
     responses: {
       200: {
         description:
-          "질문 아이디에 대한 답변을 반환합니다. 쿼리스트링 타입이 'me'인 경우, 유저가 작성한 리턴합니다. 유저가 작성하지 않았으면 null을 리턴합니다. 쿼리스트링 타입이 all인 경우 'isPublic'이 true인 모든 답변들을 반환합니다. 이경우 유저가 작성한 답변은 조회하지 않습니다.",
+          "유저가 작성한 답변과 그에 관한 질문 정보를 반환합니다. 유저가 답변하지 않았을 경우 null을 리턴합니다.",
         content: {
           "application/json": {
-            schema: z.discriminatedUnion("queryType", [
-              z.object({
-                queryType: z.literal("me"),
-                answer: z.object({ id: z.number(), answer: z.string(), ownerId: z.number() }).nullable(),
-              }),
-              z.object({
-                queryType: z.literal("other"),
-                answers: z.array(z.object({ id: z.number(), answer: z.string(), ownerId: z.number() })),
-              }),
-            ]),
+            schema: z.object({
+              answer: z.object({ id: z.number(), answer: z.string(), ownerId: z.number() }).nullable(),
+              question: z.object({ id: z.number(), question: z.string() }),
+            }),
           },
         },
       },
@@ -190,25 +184,19 @@ question.openapi(
     }
 
     const { id } = c.req.valid("param");
-    const { type } = c.req.valid("query");
 
-    if (type === "me") {
-      const answer = await findUserAnswerByQuestionId(c.var.conn, c.var.sessionResult.data.userId, id);
-      return c.json(
-        {
-          queryType: "me" as const,
-          answer: answer ? { id: answer.id, answer: answer.answer, ownerId: c.var.sessionResult.data.userId } : null,
-        },
-        200,
-      );
-    }
-
+    const {
+      id: questionId,
+      question: { question },
+    } = await findQuestionByDistributionId(c.var.conn, id);
+    const answer = await findUserAnswerByQuestionId(c.var.conn, c.var.sessionResult.data.userId, id);
     return c.json(
       {
-        queryType: "other" as const,
-        answers: (await findUserAnswersExceptMeByQuestionId(c.var.conn, c.var.sessionResult.data.userId, id)).map(
-          (ret) => ({ id: ret.id, answer: ret.answer, ownerId: ret.userId }),
-        ),
+        answer: answer ? { id: answer.id, answer: answer.answer, ownerId: c.var.sessionResult.data.userId } : null,
+        question: {
+          id: questionId,
+          question,
+        },
       },
       200,
     );

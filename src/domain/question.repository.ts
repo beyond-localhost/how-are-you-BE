@@ -15,6 +15,11 @@ export const findTodayQuestion = (conn: Conn) =>
     .where(eq(questionDistributions.distributionDate, sql`(date('now','localtime'))`))
     .innerJoin(questions, eq(questionDistributions.questionId, questions.id));
 
+export const findQuestionByDistributionId = (conn: Conn, distributionId: number) =>
+  conn.query.questionDistributions
+    .findFirst({ where: eq(questionDistributions.id, distributionId), with: { question: true } })
+    .then(nonNullish);
+
 export const findUserAnswerByQuestionId = async (conn: Conn, userId: number, distributionId: number) =>
   conn.query.questionAnswers.findFirst({
     where: and(eq(questionAnswers.questionDistributionId, distributionId), eq(questionAnswers.userId, userId)),
