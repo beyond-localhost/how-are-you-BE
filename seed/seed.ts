@@ -49,6 +49,5 @@ export async function runSeed(dbPath = "sqlite.db") {
     });
 
     await tx.insert(questionDistributions).values(qdList);
-    await tx.insert(questionDistributions).values(qdList2);
   });
 }
