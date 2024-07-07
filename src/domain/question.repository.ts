@@ -186,14 +186,14 @@ export const findUserAnswers = async (
       throw new Error("");
     }
     return {
-      data: data,
+      list: data,
       hasMore: true as const,
       nextCursor: lastData.questionId,
     };
   }
 
   return {
-    data: data,
+    list: data,
     hasMore: false as const,
     nextCursor: undefined,
   };

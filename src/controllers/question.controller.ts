@@ -273,7 +273,7 @@ question.openapi(
               z.object({
                 hasMore: z.literal(true),
                 nextCursor: z.number(),
-                data: z.array(
+                list: z.array(
                   z.object({
                     questionId: z.number(),
                     question: z.string(),
@@ -285,7 +285,7 @@ question.openapi(
               z.object({
                 hasMore: z.literal(false),
                 nextCursor: z.literal(undefined),
-                data: z.array(
+                list: z.array(
                   z.object({
                     questionId: z.number(),
                     question: z.string(),
