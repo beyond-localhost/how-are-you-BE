@@ -13,7 +13,7 @@ export function createSQLite(path = "sqlite.db") {
 }
 
 export function createDrizzle(db: Database) {
-  return drizzle(db, { schema: { ...schema }, logger: true });
+  return drizzle(db, { schema: { ...schema }, logger: false });
 }
 
 export type Conn = ReturnType<typeof createDrizzle>;

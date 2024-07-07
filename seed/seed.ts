@@ -23,13 +23,32 @@ export async function runSeed(dbPath = "sqlite.db") {
         }, []),
       );
 
-    await tx.insert(questionDistributions).values(
-      qs.map((q, index) => {
-        return {
-          questionId: q.id,
-          distributionDate: sql.raw(`date('now', 'localtime', '-${index} day')`),
-        };
-      }),
-    );
+    const qsLength = qs.length;
+    const qdList = Array.from({ length: qsLength * 100 }, (_, index) => {
+      const targetQsIndex = index % qs.length;
+      const q = qs[targetQsIndex];
+      if (!q) {
+        throw new Error(`Failed to seed data`);
+      }
+      return {
+        questionId: q.id,
+        distributionDate: sql.raw(`date('now', 'localtime', '+${index} day')`),
+      };
+    });
+
+    const qdList2 = Array.from({ length: qsLength * 100 }, (_, index) => {
+      const targetQsIndex = index % qs.length;
+      const q = qs[targetQsIndex];
+      if (!q) {
+        throw new Error(`Failed to seed data`);
+      }
+      return {
+        questionId: q.id,
+        distributionDate: sql.raw(`date('now', 'localtime', '-${index} day')`),
+      };
+    });
+
+    await tx.insert(questionDistributions).values(qdList);
+    await tx.insert(questionDistributions).values(qdList2);
   });
 }
