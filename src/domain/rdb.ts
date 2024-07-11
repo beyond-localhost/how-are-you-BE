@@ -35,5 +35,5 @@ export function createMYSQLDrizzleConnection(instance: mysql.Connection, logger 
   });
 }
 
-export type Conn = ReturnType<typeof createDrizzle>;
+export type Conn = ReturnType<typeof createMYSQLDrizzleConnection>;
 export type Conn2 = ReturnType<typeof createMYSQLDrizzleConnection>;
