@@ -12,9 +12,17 @@ const Server = z.object({
   Host: z.string(),
   Port: z.string().transform(Number),
 });
+
+const Database = z.object({
+  host: z.string(),
+  port: z.string().transform(Number),
+  user: z.string(),
+  password: z.string(),
+  database: z.string(),
+});
 //regionend
 
-const Env = z.object({ Credential, Server });
+const Env = z.object({ Credential, Server, Database });
 export type Env = z.infer<typeof Env>;
 
 export function resolveEnv(): Env {
@@ -28,6 +36,13 @@ export function resolveEnv(): Env {
     Server: {
       Host: Bun.env.SERVER_HOST,
       Port: Bun.env.SERVER_PORT,
+    },
+    Database: {
+      host: Bun.env.DB_HOST,
+      port: Bun.env.DB_PORT,
+      user: Bun.env.DB_USER,
+      password: Bun.env.DB_PASSWORD,
+      database: Bun.env.DB_DATABASE_NAME,
     },
   });
 }
