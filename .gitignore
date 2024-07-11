@@ -178,3 +178,6 @@ dist
 
 # sqlite database
 sqlite.db
+
+# mysql
+mysql/*

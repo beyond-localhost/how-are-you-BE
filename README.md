@@ -1,15 +1,19 @@
 # how-are-you-be
 
-To install dependencies:
+1. You should install The Docker as a prerequisite. After installing it, use this command
+
+```bash
+docker compose -f ./docker-compose.dev.yml up -d
+```
+
+2. To install dependencies:
 
 ```bash
 bun install
 ```
 
-To run:
+3. To run:
 
 ```bash
-bun run src/main.ts
+bun dev
 ```
-
-This project was created using `bun init` in bun v1.1.6. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
