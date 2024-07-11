@@ -1,10 +1,13 @@
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
-import * as schema from "./schema";
+import { drizzle as mysqlDrizzle } from "drizzle-orm/mysql2";
+// import * as schema from "./schema";
+import * as userSchema from "../domain/user.entity";
+import * as questionSchema from "../domain/question.entity";
+import * as criteriaSchema from "../domain/criteria.entity";
+import mysql from "mysql2/promise";
 
-const IN_MEMORY_PATH = ":memory:";
-
-export function createSQLite(path = "sqlite.db") {
+export function createConnection(path = "sqlite.db") {
   const sqlite = new Database(path);
   console.log("Try to enable foreign key constraints..");
   sqlite.exec("PRAGMA foreign_keys = ON");
@@ -12,8 +15,25 @@ export function createSQLite(path = "sqlite.db") {
   return sqlite;
 }
 
+export const createMYSQLConnection = (options: mysql.ConnectionOptions): Promise<mysql.Connection> => {
+  return mysql.createConnection(options);
+};
+
+export const createMYSQLPool = (options: mysql.ConnectionOptions): mysql.Pool => {
+  return mysql.createPool(options);
+};
+
 export function createDrizzle(db: Database) {
-  return drizzle(db, { schema: { ...schema }, logger: false });
+  return drizzle(db, { schema: { ...userSchema, ...questionSchema, ...criteriaSchema }, logger: false });
+}
+
+export function createMYSQLDrizzleConnection(instance: mysql.Connection, logger = false) {
+  return mysqlDrizzle(instance, {
+    schema: { ...userSchema, ...questionSchema, ...criteriaSchema },
+    mode: "default",
+    logger,
+  });
 }
 
 export type Conn = ReturnType<typeof createDrizzle>;
+export type Conn2 = ReturnType<typeof createMYSQLDrizzleConnection>;
