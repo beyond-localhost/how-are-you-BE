@@ -43,12 +43,12 @@ export const createUser = async (conn: Conn, dto: CreateUserDto): Promise<User> 
 
 export const createSession = async (tx: Conn, dto: CreateSessionDto) => {
   const { id } = await tx.insert(sessions).values(dto).$returningId().then(dangerousHead);
-  return tx.select().from(sessions).where(eq(sessions.id, id));
+  return tx.select().from(sessions).where(eq(sessions.id, id)).then(dangerousHead);
 };
 
 export const createUserProfile = async (tx: Conn, dto: CreateUserProfileDto) => {
   await tx.insert(userProfiles).values(dto);
-  return tx.select().from(userProfiles).where(eq(userProfiles.id, dto.id));
+  return tx.select().from(userProfiles).where(eq(userProfiles.id, dto.id)).then(dangerousHead);
 };
 export const createUserWorries = async (tx: Conn, worries: CreateUserProfilesToWorries[]) =>
   tx.insert(userProfilesToWorries).values(worries);
