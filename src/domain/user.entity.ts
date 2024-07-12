@@ -83,7 +83,7 @@ export const userProfiles = mysqlTable("user_profiles", {
     .primaryKey()
     .references(() => users.id),
   nickname: text("nickname").notNull(),
-  birthday: datetime("birthday").notNull().$type<DateTime>(),
+  birthday: datetime("birthday", { mode: "string" }).notNull().$type<DateTime>(),
   gender: text("gender").$type<"male" | "female">(),
   jobId: int("job_id")
     .notNull()
