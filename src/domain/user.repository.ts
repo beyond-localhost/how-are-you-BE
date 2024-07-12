@@ -28,7 +28,7 @@ export const findExternalIdentityWithUserById = async (
   });
 
 export const createExternalIdentities = async (tx: Conn, dto: CreateExternalIdentity) =>
-  tx.insert(externalIdentities).values(dto).returning().then(dangerousHead);
+  tx.insert(externalIdentities).values(dto);
 
 export const findUserByIdOrFail = async (conn: Conn, id: number): Promise<User> =>
   conn.select().from(users).where(eq(users.id, id)).then(dangerousHead);
@@ -36,16 +36,22 @@ export const findUserByIdOrFail = async (conn: Conn, id: number): Promise<User> 
 export const findUserBySessionId = async (conn: Conn, sessionId: number) =>
   conn.query.sessions.findFirst({ where: eq(sessions.id, sessionId), with: { user: true } });
 
-export const createUser = async (conn: Conn, dto: CreateUserDto): Promise<User> =>
-  conn.insert(users).values(dto).returning().then(dangerousHead);
+export const createUser = async (conn: Conn, dto: CreateUserDto): Promise<User> => {
+  const { id } = await conn.insert(users).values(dto).$returningId().then(dangerousHead);
+  return conn.select().from(users).where(eq(users.id, id)).then(dangerousHead);
+};
 
-export const createSession = async (tx: Conn, dto: CreateSessionDto) =>
-  tx.insert(sessions).values(dto).returning().then(dangerousHead);
+export const createSession = async (tx: Conn, dto: CreateSessionDto) => {
+  const { id } = await tx.insert(sessions).values(dto).$returningId().then(dangerousHead);
+  return tx.select().from(sessions).where(eq(sessions.id, id)).then(dangerousHead);
+};
 
-export const createUserProfile = async (tx: Conn, dto: CreateUserProfileDto) =>
-  tx.insert(userProfiles).values(dto).returning().then(dangerousHead);
+export const createUserProfile = async (tx: Conn, dto: CreateUserProfileDto) => {
+  await tx.insert(userProfiles).values(dto);
+  return tx.select().from(userProfiles).where(eq(userProfiles.id, dto.id)).then(dangerousHead);
+};
 export const createUserWorries = async (tx: Conn, worries: CreateUserProfilesToWorries[]) =>
-  tx.insert(userProfilesToWorries).values(worries).returning();
+  tx.insert(userProfilesToWorries).values(worries);
 
 export const findUserProfileByUserId = async (conn: Conn, userId: number) =>
   conn.query.userProfiles.findFirst({

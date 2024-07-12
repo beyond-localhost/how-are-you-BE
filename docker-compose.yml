@@ -6,7 +6,10 @@ services:
       - "3306:3306"
     volumes:
       - "./mysql/data:/var/lib/mysql"
+    container_name: how_are_you
     environment:
-      - MYSQL_DATABASE=how-are-you-be
+      - MYSQL_DATABASE=how_are_you
       - MYSQL_USER=hyunmyung
+      - MYSQL_PASSWORD=hyunmyung
       - MYSQL_ROOT_PASSWORD=root
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]

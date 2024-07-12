@@ -1,12 +1,13 @@
 import { relations, sql } from "drizzle-orm";
-import { sqliteTable, integer, text, primaryKey } from "drizzle-orm/sqlite-core";
-import { questionAnswers } from "./question.entity";
-import { jobs, worries } from "./criteria.entity";
-import type { DateTime } from "src/lib/date";
 
-export const externalIdentities = sqliteTable("external_identities", {
-  id: text("id").primaryKey().notNull(),
-  userId: integer("user_id")
+import { boolean, datetime, int, mysqlTable, primaryKey, text, varchar } from "drizzle-orm/mysql-core";
+import type { DateTime } from "src/lib/date";
+import { jobs, worries } from "./criteria.entity";
+import { questionAnswers } from "./question.entity";
+
+export const externalIdentities = mysqlTable("external_identities", {
+  id: varchar("id", { length: 255 }).primaryKey().notNull(),
+  userId: int("user_id")
     .notNull()
     .references(() => users.id, {
       onDelete: "cascade",
@@ -28,15 +29,15 @@ export const externalIdentitiesRelations = relations(externalIdentities, ({ one 
   };
 });
 
-export const users = sqliteTable("users", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const users = mysqlTable("users", {
+  id: int("id").primaryKey().notNull().autoincrement(),
   email: text("email").notNull(),
-  createdAt: text("created_at")
+  createdAt: datetime("created_at", { mode: "string" })
     .notNull()
-    .default(sql`(datetime('now','localtime'))`),
-  lastSignedInAt: text("last_signed_in_at")
+    .default(sql`(CURRENT_DATE)`),
+  lastSignedInAt: datetime("last_signed_in_at", { mode: "string" })
     .notNull()
-    .default(sql`(datetime('now','localtime'))`),
+    .default(sql`(CURRENT_DATE)`),
 });
 
 export const usersRelations = relations(users, ({ one, many }) => {
@@ -48,21 +49,21 @@ export const usersRelations = relations(users, ({ one, many }) => {
   };
 });
 
-export const sessions = sqliteTable("sessions", {
-  id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-  userId: integer("user_id")
+export const sessions = mysqlTable("sessions", {
+  id: int("id").primaryKey().notNull().autoincrement(),
+  userId: int("user_id")
     .notNull()
     .references(() => users.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-  revoked: integer("revoked", { mode: "boolean" }).notNull().default(false),
-  createdAt: text("created_at")
+  revoked: boolean("revoked").notNull().default(false),
+  createdAt: datetime("created_at", { mode: "string" })
     .notNull()
-    .default(sql`(datetime('now','localtime'))`),
-  updatedAt: text("updated_at")
+    .default(sql`(CURRENT_DATE)`),
+  updatedAt: datetime("updated_at", { mode: "string" })
     .notNull()
-    .default(sql`(datetime('now','localtime'))`),
+    .default(sql`(CURRENT_DATE)`),
 });
 
 export type CreateSessionDto = typeof sessions.$inferInsert;
@@ -77,22 +78,22 @@ export const sessionsRelations = relations(sessions, ({ one }) => {
   };
 });
 
-export const userProfiles = sqliteTable("user_profiles", {
-  id: integer("id")
+export const userProfiles = mysqlTable("user_profiles", {
+  id: int("id")
     .primaryKey()
     .references(() => users.id),
   nickname: text("nickname").notNull(),
-  birthday: text("birthday").notNull().$type<DateTime>(),
+  birthday: datetime("birthday", { mode: "string" }).notNull().$type<DateTime>(),
   gender: text("gender").$type<"male" | "female">(),
-  jobId: integer("job_id")
+  jobId: int("job_id")
     .notNull()
     .references(() => jobs.id),
-  createdAt: text("created_at")
+  createdAt: datetime("created_at", { mode: "string" })
     .notNull()
-    .default(sql`(datetime('now','localtime'))`),
-  updatedAt: text("updated_at")
+    .default(sql`(CURRENT_DATE)`),
+  updatedAt: datetime("updated_at", { mode: "string" })
     .notNull()
-    .default(sql`(datetime('now','localtime'))`),
+    .default(sql`(CURRENT_DATE)`),
 });
 
 export type UserProfile = typeof userProfiles.$inferSelect;
@@ -112,13 +113,13 @@ export const userProfilesRelations = relations(userProfiles, ({ one, many }) => 
   };
 });
 
-export const userProfilesToWorries = sqliteTable(
+export const userProfilesToWorries = mysqlTable(
   "user_profiles_worries",
   {
-    userProfileId: integer("user_profile_id")
+    userProfileId: int("user_profile_id")
       .notNull()
       .references(() => userProfiles.id),
-    worryId: integer("worry_id")
+    worryId: int("worry_id")
       .notNull()
       .references(() => worries.id),
   },

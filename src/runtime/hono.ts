@@ -2,7 +2,7 @@ import { OpenAPIHono, createRoute, z, type RouteConfig } from "@hono/zod-openapi
 import { deleteCookie, getSignedCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
-import { createDrizzle, createSQLite, type Conn } from "src/domain/rdb";
+import { createMYSQLDrizzleConnection, createMYSQLPool, type Conn } from "src/domain/rdb";
 import { resolveEnv, type Env } from "src/env";
 import type { Session, User } from "../domain/user.entity.ts";
 import { findUserBySessionId } from "../domain/user.repository.ts";
@@ -18,8 +18,9 @@ type StaticDependency = {
 };
 
 export const depsMiddleware = createMiddleware<StaticDependency>(async (c, next) => {
-  c.set("env", resolveEnv());
-  c.set("conn", createDrizzle(createSQLite()));
+  const env = resolveEnv();
+  c.set("env", env);
+  c.set("conn", createMYSQLDrizzleConnection(createMYSQLPool(env.Database), Bun.env.NODE_ENV === "development"));
   await next();
 });
 

@@ -1,16 +1,16 @@
 import { relations, sql } from "drizzle-orm";
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 import { users } from "./user.entity";
+import { mysqlTable, int, text, datetime, boolean, index, foreignKey } from "drizzle-orm/mysql-core";
 
-export const questions = sqliteTable("questions", {
-  id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+export const questions = mysqlTable("questions", {
+  id: int("id").primaryKey().notNull().autoincrement(),
   question: text("question").notNull(),
-  createdAt: text("created_at")
+  createdAt: datetime("created_at", { mode: "string" })
     .notNull()
-    .default(sql`(datetime('now','localtime'))`),
-  updatedAt: text("updated_at")
+    .default(sql`(CURRENT_DATE)`),
+  updatedAt: datetime("updated_at", { mode: "string" })
     .notNull()
-    .default(sql`(datetime('now','localtime'))`),
+    .default(sql`(CURRENT_DATE)`),
 });
 
 export const questionsRelations = relations(questions, ({ many }) => {
@@ -20,13 +20,13 @@ export const questionsRelations = relations(questions, ({ many }) => {
   };
 });
 
-export const questionDistributions = sqliteTable("question_distributions", {
-  id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-  questionId: integer("question_id")
+export const questionDistributions = mysqlTable("question_distributions", {
+  id: int("id").primaryKey().notNull().autoincrement(),
+  questionId: int("question_id")
     .notNull()
     .references(() => questions.id),
-  distributionDate: text("distribution_date")
-    .default(sql`(date('now','localtime'))`)
+  distributionDate: datetime("distribution_date", { mode: "string" })
+    .default(sql`(CURRENT_DATE)`)
     .notNull()
     .unique(),
 });
@@ -41,31 +41,32 @@ export const questionDistributionsRelations = relations(questionDistributions, (
   };
 });
 
-export const questionAnswers = sqliteTable(
+export const questionAnswers = mysqlTable(
   "question_answers",
   {
-    id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+    id: int("id").primaryKey().notNull().autoincrement(),
     answer: text("answer").notNull(),
-    questionDistributionId: integer("question_distribution_id")
-      .notNull()
-      .references(() => questionDistributions.id, {
-        onDelete: "set null",
-        onUpdate: "cascade",
-      }),
-    userId: integer("user_id")
+    questionDistributionId: int("question_distribution_id").notNull(),
+
+    userId: int("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    isPublic: integer("is_public", { mode: "boolean" }).notNull().default(false),
-    createdAt: text("created_at")
+    isPublic: boolean("is_public").notNull().default(false),
+    createdAt: datetime("created_at", { mode: "string" })
       .notNull()
-      .default(sql`(datetime('now','localtime'))`),
-    updatedAt: text("updated_at")
+      .default(sql`(CURRENT_DATE)`),
+    updatedAt: datetime("updated_at", { mode: "string" })
       .notNull()
-      .default(sql`(datetime('now','localtime'))`),
+      .default(sql`(CURRENT_DATE)`),
   },
   (table) => {
     return {
       created_at_idx: index("created_at_idx").on(table.createdAt),
+      distributionReference: foreignKey({
+        columns: [table.questionDistributionId],
+        foreignColumns: [questionDistributions.id],
+        name: "answer_distribution_id_fk",
+      }),
     };
   },
 );

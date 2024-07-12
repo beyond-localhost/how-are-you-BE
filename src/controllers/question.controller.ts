@@ -2,13 +2,11 @@ import {
   createQuestionAnswer,
   deleteUserAnswerById,
   findAnswerById,
-  findOneQuestionById,
+  findOneQuestionByDistributionId,
   findQuestionByDistributionId,
   findTodayQuestion,
-  findUserAnswerByQuestionId,
+  findUserAnswerByQuestionDistributionId,
   findUserAnswers,
-  findUserAnswersExceptMeByQuestionId,
-  findUserQuestionAnswerByQuestionId,
   updateQuestionAnswer,
 } from "../domain/question.repository.ts";
 import { convertDateToDateTime, isLeapYear, makeDateTime } from "../lib/date.ts";
@@ -61,7 +59,7 @@ question.openapi(
       return c.json({}, 404);
     }
 
-    const userQuestionAnswer = await findUserAnswerByQuestionId(
+    const userQuestionAnswer = await findUserAnswerByQuestionDistributionId(
       c.var.conn,
       c.var.sessionResult.data.userId,
       question.distributionId,
@@ -129,11 +127,12 @@ question.openapi(
     const { id } = c.req.valid("param");
     const requestDateTime = convertDateToDateTime(new Date(Date.now()));
 
-    const questionDistribution = await findOneQuestionById(c.var.conn, id, requestDateTime);
+    const questionDistribution = await findOneQuestionByDistributionId(c.var.conn, id, requestDateTime);
     if (!questionDistribution) {
       return c.json({}, 404);
     }
-    const existingAnswer = await findUserQuestionAnswerByQuestionId(
+
+    const existingAnswer = await findUserAnswerByQuestionDistributionId(
       c.var.conn,
       c.var.sessionResult.data.userId,
       questionDistribution.id,
@@ -186,15 +185,16 @@ question.openapi(
     const { id } = c.req.valid("param");
 
     const {
-      id: questionId,
+      id: distributionId,
       question: { question },
     } = await findQuestionByDistributionId(c.var.conn, id);
-    const answer = await findUserAnswerByQuestionId(c.var.conn, c.var.sessionResult.data.userId, id);
+
+    const answer = await findUserAnswerByQuestionDistributionId(c.var.conn, c.var.sessionResult.data.userId, id);
     return c.json(
       {
         answer: answer ? { id: answer.id, answer: answer.answer, ownerId: c.var.sessionResult.data.userId } : null,
         question: {
-          id: questionId,
+          id: distributionId,
           question,
         },
       },
@@ -231,7 +231,11 @@ question.openapi(
     }
 
     const { answerId } = c.req.valid("param");
-    const existingAnswer = await findUserAnswerByQuestionId(c.var.conn, c.var.sessionResult.data.userId, answerId);
+    const existingAnswer = await findUserAnswerByQuestionDistributionId(
+      c.var.conn,
+      c.var.sessionResult.data.userId,
+      answerId,
+    );
     if (!existingAnswer) {
       return c.json({}, 404);
     }

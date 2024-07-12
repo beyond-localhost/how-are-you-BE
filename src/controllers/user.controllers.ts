@@ -119,6 +119,7 @@ user.openapi(
 
     const gender = genderCandidate === "none" ? null : genderCandidate;
     const profile = await createUserProfile(c.var.conn, {
+      id: c.var.sessionResult.data.userId,
       gender,
       jobId,
       nickname,

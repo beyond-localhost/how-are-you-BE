@@ -9,6 +9,14 @@ import question from "./controllers/question.controller.ts";
 import user from "./controllers/user.controllers";
 import { depsMiddleware, honoApp } from "./runtime/hono";
 
+// const pool = createMYSQLPool({
+//   host: "localhost",
+//   port: 3306,
+//   user: "hyunmyung",
+//   password: "hyunmyung",
+//   database: "how-are-you-be",
+// });
+
 const env = resolveEnv();
 
 const app = honoApp();
