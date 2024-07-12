@@ -5,10 +5,10 @@ import { mysqlTable, int, text, datetime, boolean, index, foreignKey } from "dri
 export const questions = mysqlTable("questions", {
   id: int("id").primaryKey().notNull().autoincrement(),
   question: text("question").notNull(),
-  createdAt: datetime("created_at")
+  createdAt: datetime("created_at", { mode: "string" })
     .notNull()
     .default(sql`(CURRENT_DATE)`),
-  updatedAt: datetime("updated_at")
+  updatedAt: datetime("updated_at", { mode: "string" })
     .notNull()
     .default(sql`(CURRENT_DATE)`),
 });
@@ -25,7 +25,7 @@ export const questionDistributions = mysqlTable("question_distributions", {
   questionId: int("question_id")
     .notNull()
     .references(() => questions.id),
-  distributionDate: datetime("distribution_date")
+  distributionDate: datetime("distribution_date", { mode: "string" })
     .default(sql`(CURRENT_DATE)`)
     .notNull()
     .unique(),
@@ -52,10 +52,10 @@ export const questionAnswers = mysqlTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
     isPublic: boolean("is_public").notNull().default(false),
-    createdAt: datetime("created_at")
+    createdAt: datetime("created_at", { mode: "string" })
       .notNull()
       .default(sql`(CURRENT_DATE)`),
-    updatedAt: datetime("updated_at")
+    updatedAt: datetime("updated_at", { mode: "string" })
       .notNull()
       .default(sql`(CURRENT_DATE)`),
   },

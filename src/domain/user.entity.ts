@@ -58,10 +58,10 @@ export const sessions = mysqlTable("sessions", {
       onUpdate: "cascade",
     }),
   revoked: boolean("revoked").notNull().default(false),
-  createdAt: datetime("created_at")
+  createdAt: datetime("created_at", { mode: "string" })
     .notNull()
     .default(sql`(CURRENT_DATE)`),
-  updatedAt: datetime("updated_at")
+  updatedAt: datetime("updated_at", { mode: "string" })
     .notNull()
     .default(sql`(CURRENT_DATE)`),
 });
@@ -88,10 +88,10 @@ export const userProfiles = mysqlTable("user_profiles", {
   jobId: int("job_id")
     .notNull()
     .references(() => jobs.id),
-  createdAt: datetime("created_at")
+  createdAt: datetime("created_at", { mode: "string" })
     .notNull()
     .default(sql`(CURRENT_DATE)`),
-  updatedAt: datetime("updated_at")
+  updatedAt: datetime("updated_at", { mode: "string" })
     .notNull()
     .default(sql`(CURRENT_DATE)`),
 });
