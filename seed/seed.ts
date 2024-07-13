@@ -1,17 +1,17 @@
 import { inArray, sql } from "drizzle-orm";
 import { jobs, worries } from "../src/domain/criteria.entity";
 import { questionDistributions, questions } from "../src/domain/question.entity";
-import { type Conn2 } from "../src/domain/rdb";
+import { type Conn } from "../src/domain/rdb";
 import jobJson from "./jobs.json";
 import question20240515 from "./question-20240515.json";
 import worryJson from "./worries.json";
 
-export async function runSeed(db: Conn2) {
+export async function runSeed(db: Conn) {
   // const db = createDrizzle(createConnection(dbPath));/
   await db.transaction(async (tx) => {
     await tx.insert(jobs).values(jobJson.jobs);
     await tx.insert(worries).values(worryJson.worries);
-
+    const n = await tx.insert(questions).values(question20240515.questions);
     const ids = await tx.insert(questions).values(question20240515.questions).$returningId();
     const qs = await tx
       .select()
