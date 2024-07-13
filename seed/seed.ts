@@ -11,7 +11,7 @@ export async function runSeed(db: Conn) {
   await db.transaction(async (tx) => {
     await tx.insert(jobs).values(jobJson.jobs);
     await tx.insert(worries).values(worryJson.worries);
-
+    const n = await tx.insert(questions).values(question20240515.questions);
     const ids = await tx.insert(questions).values(question20240515.questions).$returningId();
     const qs = await tx
       .select()
