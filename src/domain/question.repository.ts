@@ -1,19 +1,25 @@
 import type { Conn } from "./rdb";
 
-import { and, between, eq, gte, sql } from "drizzle-orm";
+import { and, between, eq, gte, lte, sql } from "drizzle-orm";
 import type { DateTime } from "../lib/date.ts";
 import { dangerousHead, nonNullish } from "../lib/predicate";
 import { questionAnswers, questionDistributions, questions, type CreateQuestionAnswer } from "./question.entity";
 
-export const findTodayQuestion = (conn: Conn) =>
-  conn
+export const findTodayQuestion = (conn: Conn) => {
+  return conn
     .select({
       distributionId: questionDistributions.id,
       question: questions.question,
     })
     .from(questionDistributions)
-    .where(eq(questionDistributions.distributionDate, sql`(CURRENT_DATE)`))
+    .where(
+      and(
+        gte(questionDistributions.distributionDate, sql`(CURRENT_DATE)`),
+        lte(questionDistributions.distributionDate, sql`DATE_ADD(CURRENT_DATE, INTERVAL 1 DAY)`),
+      ),
+    )
     .innerJoin(questions, eq(questionDistributions.questionId, questions.id));
+};
 
 export const findQuestionByDistributionId = (conn: Conn, distributionId: number) =>
   conn.query.questionDistributions
