@@ -38,4 +38,5 @@ export async function runSeed(db: Conn) {
 
     await tx.insert(questionDistributions).values(qdList);
   });
+  process.exit(0);
 }

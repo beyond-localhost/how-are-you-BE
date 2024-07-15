@@ -180,4 +180,4 @@ dist
 sqlite.db
 
 # mysql
-mysql/*
+mysql/data/*

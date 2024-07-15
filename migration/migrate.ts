@@ -7,4 +7,5 @@ export async function runMigrate(option: Env["Database"]) {
   const drizzle = createMYSQLDrizzleConnection(connection, true);
   await migrate(drizzle, { migrationsFolder: "drizzle" });
   await connection.end();
+  process.exit(0);
 }
