@@ -4,7 +4,7 @@ import {
   createUser,
   findExternalIdentityWithUserById,
 } from "src/domain/user.repository";
-import { fetchKakaoToken, fetchKakaoUser } from "src/lib/kakao";
+import { fetchKakaoToken, fetchKakaoUser, KakaoHost } from "src/lib/kakao";
 import { deserializeOAuthState, serializeOAuthState } from "src/lib/oauth";
 import { assertURL } from "src/lib/url";
 import { createRoute, honoApp, z } from "src/runtime/hono";
@@ -66,8 +66,7 @@ auth.openapi(
     }
 
     const redirectUri = `${c.var.env.Server.Host}:${c.var.env.Server.Port}/callback`;
-    const KAKAO_AUTH_HOST = "https://kauth.kakao.com/oauth/authorize";
-    const kakaoURL = new URL(KAKAO_AUTH_HOST);
+    const kakaoURL = new URL(KakaoHost.Authorize);
     kakaoURL.searchParams.set("redirect_uri", redirectUri);
     kakaoURL.searchParams.set("response_type", "code");
     kakaoURL.searchParams.set("client_id", c.var.env.Credential.KakaoRestAPIKey);
@@ -114,6 +113,7 @@ auth.openapi(
     const redirectUri = `${env.Server.Host}:${env.Server.Port}/callback`;
     const clientId = env.Credential.KakaoRestAPIKey;
     const clientSecret = env.Credential.KakaoSecret;
+
     const tokenResponse = await fetchKakaoToken({
       clientId,
       clientSecret,
