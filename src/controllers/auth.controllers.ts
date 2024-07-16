@@ -4,9 +4,9 @@ import {
   createUser,
   findExternalIdentityWithUserById,
 } from "src/domain/user.repository";
-import { fetchKakaoToken, fetchKakaoUser } from "src/lib/kakao";
+import { fetchKakaoToken, fetchKakaoUser, KakaoHost } from "src/lib/kakao";
 import { deserializeOAuthState, serializeOAuthState } from "src/lib/oauth";
-import { validateURL } from "src/lib/url";
+import { assertURL } from "src/lib/url";
 import { createRoute, honoApp, z } from "src/runtime/hono";
 
 import { setSignedCookie } from "hono/cookie";
@@ -54,20 +54,19 @@ auth.openapi(
     },
   }),
   (c) => {
-    const { destination } = c.req.valid("json");
-    const brandedDestination = validateURL(destination);
     let state: string;
 
     try {
-      state = serializeOAuthState("kakao", brandedDestination);
+      const { destination } = c.req.valid("json");
+      assertURL(destination);
+      state = serializeOAuthState("kakao", destination);
     } catch (e) {
       console.error(e);
       return c.json({ code: 400 as const, error: "잘못된 URL을 입력하였습니다" }, 400);
     }
 
     const redirectUri = `${c.var.env.Server.Host}:${c.var.env.Server.Port}/callback`;
-    const KAKAO_AUTH_HOST = "https://kauth.kakao.com/oauth/authorize";
-    const kakaoURL = new URL(KAKAO_AUTH_HOST);
+    const kakaoURL = new URL(KakaoHost.Authorize);
     kakaoURL.searchParams.set("redirect_uri", redirectUri);
     kakaoURL.searchParams.set("response_type", "code");
     kakaoURL.searchParams.set("client_id", c.var.env.Credential.KakaoRestAPIKey);
@@ -114,6 +113,7 @@ auth.openapi(
     const redirectUri = `${env.Server.Host}:${env.Server.Port}/callback`;
     const clientId = env.Credential.KakaoRestAPIKey;
     const clientSecret = env.Credential.KakaoSecret;
+
     const tokenResponse = await fetchKakaoToken({
       clientId,
       clientSecret,

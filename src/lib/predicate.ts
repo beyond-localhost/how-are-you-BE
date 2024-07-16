@@ -1,8 +1,11 @@
 export const head = <T>(array: T[]): T => {
   if (array[0] === undefined) {
-    throw new Error(`DataNotFoundError: ${array}`);
+    if (array.length === 0) {
+      throw new Error(`DataNotFoundError: ${array}`);
+    }
   }
-  return array[0];
+  // ([undefined]) should return undefined
+  return array[0] as T;
 };
 
 export const dangerousHead = head;

@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-const KakaoTokenResponse = z.object({
+export const KakaoTokenResponse = z.object({
   access_token: z.string(),
   token_type: z.literal("bearer"),
 });
-type KakaoTokenResponse = z.infer<typeof KakaoTokenResponse>;
+export type KakaoTokenResponse = z.infer<typeof KakaoTokenResponse>;
 
-const KakaoUserResponse = z.object({
+export const KakaoUserResponse = z.object({
   id: z.number(),
   properties: z.object({
     nickname: z.string(),
@@ -15,24 +15,25 @@ const KakaoUserResponse = z.object({
     email: z.string().email(),
   }),
 });
-type KakaoUserResponse = z.infer<typeof KakaoUserResponse>;
+export type KakaoUserResponse = z.infer<typeof KakaoUserResponse>;
 
-type FetchKakaoTokenOptions = {
+export type FetchKakaoTokenOptions = {
   clientId: string;
   clientSecret: string;
   redirectUri: string;
   code: string;
 };
-// export async function fetchKakaoToken(options: FetchKakaoTokenOptions): Promis {}
+
+export const KakaoHost = {
+  Authorize: "https://kauth.kakao.com/oauth/authorize",
+  Token: "https://kauth.kakao.com/oauth/token",
+  User: "https://kapi.kakao.com/v2/user/me",
+} as const;
 
 export const fetchKakaoToken = async (options: FetchKakaoTokenOptions): Promise<KakaoTokenResponse> => {
-  const KAKAO_TOKEN_HOST = "https://kauth.kakao.com/oauth/token";
   const KAKAO_CONTENT_TYPE = "application/x-www-form-urlencoded";
   const KAKAO_GRANT_TYPE = "authorization_code";
-  // TODO-START: remove duplicated variables
   const redirectUri = options.redirectUri;
-  // TODO-END: remove duplicated variables
-
   const clientId = options.clientId;
   const clientSecret = options.clientSecret;
 
@@ -46,7 +47,7 @@ export const fetchKakaoToken = async (options: FetchKakaoTokenOptions): Promise<
   urlSearchParams.append("redirect_uri", redirectUri);
   urlSearchParams.append("code", options.code);
 
-  const tokenResponse = await fetch(KAKAO_TOKEN_HOST, {
+  const tokenResponse = await fetch(KakaoHost.Token, {
     headers: requestHeader,
     method: "POST",
     body: urlSearchParams.toString(),
@@ -64,11 +65,10 @@ export const fetchKakaoToken = async (options: FetchKakaoTokenOptions): Promise<
 };
 
 export const fetchKakaoUser = async (accessToken: string): Promise<KakaoUserResponse> => {
-  const KAKAO_USER_HOST = "https://kapi.kakao.com/v2/user/me";
   const requestHeader = new Headers();
   requestHeader.set("authorization", `Bearer ${accessToken}`);
 
-  const userResponse = await fetch(KAKAO_USER_HOST, {
+  const userResponse = await fetch(KakaoHost.User, {
     headers: requestHeader,
     method: "GET",
   });
