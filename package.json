@@ -4,9 +4,12 @@
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest",
+    "dockerode": "^4.0.2",
     "drizzle-kit": "^0.23.0",
+    "msw": "^2.3.1",
     "prettier": "^3.3.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^2.0.3"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
