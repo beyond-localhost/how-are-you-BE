@@ -283,6 +283,7 @@ question.openapi(
                     question: z.string(),
                     answerId: z.number(),
                     answer: z.string(),
+                    createdAt: z.string(),
                   }),
                 ),
               }),
