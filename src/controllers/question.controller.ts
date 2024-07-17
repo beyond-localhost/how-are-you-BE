@@ -213,7 +213,7 @@ question.openapi(
       params: z.object({ answerId: z.string().transform(Number) }),
     },
     responses: {
-      204: {
+      200: {
         description: "답변이 삭제되었을 때 반환되는 응답입니다.",
       },
       401: unAuthorizedResponse,
@@ -246,7 +246,7 @@ question.openapi(
 
     await deleteUserAnswerById(c.var.conn, c.var.sessionResult.data.userId, answerId);
 
-    return c.json({}, 204);
+    return c.json({}, 200);
   },
 );
 
