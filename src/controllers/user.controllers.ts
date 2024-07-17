@@ -1,4 +1,10 @@
-import { createUserProfile, createUserWorries, findUserProfileByUserId } from "src/domain/user.repository";
+import { deleteCookie } from "hono/cookie";
+import {
+  createUserProfile,
+  createUserWorries,
+  deleteSession,
+  findUserProfileByUserId,
+} from "src/domain/user.repository";
 import { type DateTime, makeDateTime } from "src/lib/date";
 import { createRoute, honoAuthApp, z } from "src/runtime/hono";
 import { unAuthorizedResponse } from "./response";
@@ -132,6 +138,30 @@ user.openapi(
     );
 
     return c.json({ ok: true as const }, 201);
+  },
+);
+
+user.openapi(
+  createRoute({
+    tags: ["Auth"],
+    method: "post",
+    description: "유저를 로그아웃 시킵니다",
+    path: "/logout",
+    responses: {
+      204: {
+        description: "성공적으로 로그아웃이 완료된 경우 입니다",
+      },
+      401: unAuthorizedResponse,
+    },
+  }),
+  async (c) => {
+    if (!c.var.sessionResult.ok) {
+      return c.json({ code: 401 as const, error: "유효하지 않은 세션입니다" }, 401);
+    }
+    const session = c.var.sessionResult.data;
+    await deleteSession(c.var.conn, session.id);
+    deleteCookie(c, "sid");
+    return c.json({}, 204);
   },
 );
 

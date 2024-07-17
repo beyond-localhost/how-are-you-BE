@@ -2,7 +2,6 @@ import {
   createExternalIdentities,
   createSession,
   createUser,
-  deleteSession,
   findExternalIdentityWithUserById,
 } from "src/domain/user.repository";
 import { fetchKakaoToken, fetchKakaoUser, KakaoHost } from "src/lib/kakao";
@@ -10,11 +9,9 @@ import { deserializeOAuthState, serializeOAuthState } from "src/lib/oauth";
 import { assertURL } from "src/lib/url";
 import { createRoute, honoApp, honoAuthApp, z } from "src/runtime/hono";
 
-import { setSignedCookie, getSignedCookie, deleteCookie } from "hono/cookie";
-import { unAuthorizedResponse } from "./response";
+import { setSignedCookie } from "hono/cookie";
 
 const auth = honoApp();
-const session = honoAuthApp();
 
 auth.openapi(
   createRoute({
@@ -78,29 +75,6 @@ auth.openapi(
   },
 );
 
-session.openapi(
-  createRoute({
-    tags: ["Auth"],
-    method: "post",
-    description: "유저를 로그아웃 시킵니다",
-    path: "/logout",
-    responses: {
-      204: {
-        description: "성공적으로 로그아웃이 완료된 경우 입니다",
-      },
-      401: unAuthorizedResponse,
-    },
-  }),
-  async (c) => {
-    if (!c.var.sessionResult.ok) {
-      return c.json({ code: 401 as const, error: "유효하지 않은 세션입니다" }, 401);
-    }
-    const session = c.var.sessionResult.data;
-    await deleteSession(c.var.conn, session.id);
-    deleteCookie(c, "sid");
-    return c.json({}, 204);
-  },
-);
 auth.openapi(
   createRoute({
     tags: ["Auth"],
