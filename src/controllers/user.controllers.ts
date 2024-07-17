@@ -1,7 +1,7 @@
 import { createUserProfile, createUserWorries, findUserProfileByUserId } from "src/domain/user.repository";
 import { type DateTime, makeDateTime } from "src/lib/date";
 import { createRoute, honoAuthApp, z } from "src/runtime/hono";
-import { unAuthorizedResponse } from "./response.ts";
+import { unAuthorizedResponse } from "./response";
 
 const user = honoAuthApp();
 

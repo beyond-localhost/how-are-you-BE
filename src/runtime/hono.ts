@@ -4,9 +4,9 @@ import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 import { createMYSQLDrizzleConnection, createMYSQLPool, type Conn } from "src/domain/rdb";
 import { resolveEnv, type Env } from "src/env";
-import type { Session, User } from "../domain/user.entity.ts";
-import { findUserBySessionId } from "../domain/user.repository.ts";
-import { safeAsyncRun } from "../lib/async.ts";
+import type { Session, User } from "../domain/user.entity";
+import { findUserBySessionId } from "../domain/user.repository";
+import { safeAsyncRun } from "../lib/async";
 
 export type UnAuthorizedResponseConfig = RouteConfig["responses"]["401"];
 
@@ -20,7 +20,7 @@ type StaticDependency = {
 export const depsMiddleware = createMiddleware<StaticDependency>(async (c, next) => {
   const env = resolveEnv();
   c.set("env", env);
-  c.set("conn", createMYSQLDrizzleConnection(createMYSQLPool(env.Database), Bun.env.NODE_ENV === "development"));
+  c.set("conn", createMYSQLDrizzleConnection(createMYSQLPool(env.Database), process.env.NODE_ENV === "development"));
   await next();
 });
 

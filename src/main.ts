@@ -1,21 +1,12 @@
-import { apiReference } from "@scalar/hono-api-reference";
-
 import { resolveEnv } from "./env";
-
+import { apiReference } from "@scalar/hono-api-reference";
 import { cors } from "hono/cors";
 import auth from "./controllers/auth.controllers";
-import misc from "./controllers/misc.controller.ts";
-import question from "./controllers/question.controller.ts";
+import misc from "./controllers/misc.controller";
+import question from "./controllers/question.controller";
 import user from "./controllers/user.controllers";
 import { depsMiddleware, honoApp } from "./runtime/hono";
-
-// const pool = createMYSQLPool({
-//   host: "localhost",
-//   port: 3306,
-//   user: "hyunmyung",
-//   password: "hyunmyung",
-//   database: "how-are-you-be",
-// });
+import { serve } from "@hono/node-server";
 
 const env = resolveEnv();
 
@@ -52,7 +43,7 @@ app.doc("/swagger", {
   ],
 });
 
-export default {
-  port: env.Server.Port,
+serve({
   fetch: app.fetch,
-};
+  port: env.Server.Port,
+});

@@ -8,10 +8,10 @@ import {
   findUserAnswerByQuestionDistributionId,
   findUserAnswers,
   updateQuestionAnswer,
-} from "../domain/question.repository.ts";
-import { convertDateToDateTime, isLeapYear, makeDateTime } from "../lib/date.ts";
-import { createRoute, honoAuthApp, z } from "../runtime/hono.ts";
-import { unAuthorizedResponse } from "./response.ts";
+} from "../domain/question.repository";
+import { convertDateToDateTime, isLeapYear, makeDateTime } from "../lib/date";
+import { createRoute, honoAuthApp, z } from "../runtime/hono";
+import { unAuthorizedResponse } from "./response";
 
 const question = honoAuthApp();
 
