@@ -295,6 +295,7 @@ question.openapi(
                     question: z.string(),
                     answerId: z.number(),
                     answer: z.string(),
+                    createdAt: z.string(),
                   }),
                 ),
               }),
@@ -338,6 +339,7 @@ question.openapi(
       endDate = makeDateTime(2024, 12, 31);
     }
 
+    // TODO(steven) question created at
     const ret = await findUserAnswers(c.var.conn, user.data.userId, {
       startDate,
       endDate,

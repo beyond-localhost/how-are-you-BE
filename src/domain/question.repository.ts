@@ -89,6 +89,7 @@ export const findUserAnswers = async (
     return {
       questionId: v.questionDistribution.id,
       question: v.questionDistribution.question.question,
+      createdAt: v.questionDistribution.distributionDate,
       answerId: v.id,
       answer: v.answer,
     };
