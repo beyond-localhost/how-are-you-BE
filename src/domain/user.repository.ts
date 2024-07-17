@@ -36,6 +36,10 @@ export const findUserByIdOrFail = async (conn: Conn, id: number): Promise<User> 
 export const findUserBySessionId = async (conn: Conn, sessionId: number) =>
   conn.query.sessions.findFirst({ where: eq(sessions.id, sessionId), with: { user: true } });
 
+export const deleteSession = async (conn: Conn, sessionId: number) => {
+  await conn.delete(sessions).where(eq(sessions.id, sessionId));
+};
+
 export const createUser = async (conn: Conn, dto: CreateUserDto): Promise<User> => {
   const { id } = await conn.insert(users).values(dto).$returningId().then(dangerousHead);
   return conn.select().from(users).where(eq(users.id, id)).then(dangerousHead);
