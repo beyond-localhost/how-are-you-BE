@@ -1,7 +1,7 @@
 import { findAllJobs, findAllWorries } from "src/domain/misc.repository";
 import { createRoute, honoAuthApp, userSessionMiddleware, z } from "src/runtime/hono";
 import nickname from "src/static/nickname.json";
-import { unAuthorizedResponse } from "./response.ts";
+import { unAuthorizedResponse } from "./response";
 
 const misc = honoAuthApp();
 

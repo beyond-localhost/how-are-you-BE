@@ -1,7 +1,7 @@
 import type { Conn } from "./rdb";
 
 import { and, between, eq, gte, lte, sql } from "drizzle-orm";
-import type { DateTime } from "../lib/date.ts";
+import type { DateTime } from "../lib/date";
 import { dangerousHead, nonNullish } from "../lib/predicate";
 import { questionAnswers, questionDistributions, questions, type CreateQuestionAnswer } from "./question.entity";
 
