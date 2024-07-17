@@ -11,12 +11,12 @@ const Credential = z.object({
 
 const Server = z.object({
   Host: z.string(),
-  Port: z.string().transform(Number),
+  Port: z.union([z.string(), z.number()]).transform(Number),
 });
 
 const Database = z.object({
   host: z.string(),
-  port: z.string().transform(Number),
+  port: z.union([z.string(), z.number()]).transform(Number),
   user: z.string(),
   password: z.string(),
   database: z.string(),
@@ -44,6 +44,37 @@ export function resolveEnv(): Env {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE_NAME,
+    },
+  });
+}
+
+type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
+
+export function resolveTestENV(overrides?: DeepPartial<Env>): Env {
+  return Env.parse({
+    Credential: {
+      KakaoRestAPIKey: "test",
+      KakaoSecret: "test",
+      JWTIssuer: "test",
+      JWTSecret: "test",
+      ...overrides?.Credential,
+    },
+    Server: {
+      Host: "http://localhost",
+      Port: "7777",
+      ...overrides?.Server,
+    },
+    Database: {
+      host: "localhost",
+      port: "3306",
+      user: "root",
+      password: "root",
+      database: "",
+      ...overrides?.Database,
     },
   });
 }
