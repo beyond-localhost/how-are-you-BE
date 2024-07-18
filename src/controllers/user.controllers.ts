@@ -148,7 +148,7 @@ user.openapi(
     description: "유저를 로그아웃 시킵니다",
     path: "/logout",
     responses: {
-      204: {
+      200: {
         description: "성공적으로 로그아웃이 완료된 경우 입니다",
       },
       401: unAuthorizedResponse,
@@ -161,7 +161,7 @@ user.openapi(
     const session = c.var.sessionResult.data;
     await deleteSession(c.var.conn, session.id);
     deleteCookie(c, "sid");
-    return c.json({}, 204);
+    return c.json({}, 200);
   },
 );
 
