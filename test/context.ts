@@ -1,15 +1,21 @@
+import { migrate } from "migration/migrate";
+import { test as base, describe, inject } from "vitest";
 import type { Conn } from "~/domain/rdb";
 import { resolveTestENV, type Env } from "~/env";
-import { test as base, inject, describe } from "vitest";
-import { migrate } from "migration/migrate";
 
-import { createMYSQLConnection, createMYSQLPool, createMYSQLDrizzleConnection } from "~/domain/rdb";
-import { retry } from "~/lib/async";
 import { runSeed } from "seed/seed";
+import { createMYSQLConnection, createMYSQLDrizzleConnection, createMYSQLPool } from "~/domain/rdb";
+import { retry } from "~/lib/async";
+import { createClient, type OpenAPIClient } from "./stubs/client/client";
+
+import { createApp } from "~/runtime/app";
+import getPort, { portNumbers } from "get-port";
 
 interface Context {
   env: Env;
   conn: Conn;
+
+  client: OpenAPIClient;
 }
 
 let globalId = 1;
@@ -68,6 +74,24 @@ const test = base.extend<Context>({
     await use(drizzle);
     await pool.end();
   },
+
+  client: async ({}, use) => {
+    const server = await retry(
+      async () => {
+        const port = await getPort({ port: portNumbers(7788, 9999) });
+        const server = await createApp(port);
+        return server;
+      },
+      { maxRetryCount: 10, waitMS: 50 },
+    );
+
+    const address = server.address()?.toString() || "";
+    if (address == "") {
+      throw new Error("Server is not running correctly but client context invokes that server");
+    }
+    await use(createClient(address));
+    await server.close();
+  },
 });
 
-export { test, describe };
+export { describe, test };

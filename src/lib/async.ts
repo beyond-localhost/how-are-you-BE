@@ -16,7 +16,7 @@ export async function retry<TFunc extends (...args: any[]) => Promise<any>>(
     waitMS: number;
   },
   currentRetryCount = 0,
-) {
+): Promise<ReturnType<TFunc>> {
   try {
     return await fun();
   } catch (e) {

@@ -8,7 +8,7 @@ import question from "~/controllers/question.controller";
 import user from "~/controllers/user.controllers";
 import { depsMiddleware, honoApp } from "./hono";
 
-export const createApp = async (): Promise<{ listen: (port: number) => Promise<ServerType> }> => {
+export const createApp = async (port: number): Promise<ServerType> => {
   const app = honoApp();
   app.use(depsMiddleware);
   app.use(
@@ -42,9 +42,11 @@ export const createApp = async (): Promise<{ listen: (port: number) => Promise<S
   app.route("/", question);
   app.route("/", misc);
 
-  return {
-    async listen(port) {
-      return serve({ port: port, fetch: app.fetch });
-    },
-  };
+  const server = serve(app);
+  return new Promise<ServerType>((res) => {
+    server.listen(port, () => {
+      console.log(`Server listening on port: ${port}`);
+      res(server);
+    });
+  });
 };
