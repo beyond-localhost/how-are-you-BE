@@ -7,7 +7,7 @@ import {
 import { fetchKakaoToken, fetchKakaoUser, KakaoHost } from "src/lib/kakao";
 import { deserializeOAuthState, serializeOAuthState } from "src/lib/oauth";
 import { assertURL } from "src/lib/url";
-import { createRoute, honoApp, honoAuthApp, z } from "src/runtime/hono";
+import { createRoute, honoApp, z } from "src/runtime/hono";
 
 import { setSignedCookie } from "hono/cookie";
 
