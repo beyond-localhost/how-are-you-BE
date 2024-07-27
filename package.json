@@ -13,6 +13,7 @@
     "openapi-fetch": "^0.9.5",
     "openapi-typescript": "^7.0.4",
     "prettier": "^3.3.0",
+    "tsup": "^8.2.3",
     "tsx": "^4.16.2",
     "typescript": "^5.5.3",
     "vite-tsconfig-paths": "^4.3.2",
@@ -23,8 +24,8 @@
   },
   "scripts": {
     "dev": "tsx watch ./src/main.ts",
-    "build": "tsc",
-    "start": "NODE_ENV=production && node ./dist/src/main",
+    "build": "tsup",
+    "start": "NODE_ENV=production && node ./dist/main.cjs",
     "test:unit": "vitest --config ./test/config/unit.ts",
     "test:integration": "vitest --config ./test/config/integration.ts",
     "migration:generate": "drizzle-kit generate",
@@ -46,7 +47,7 @@
     "zod": "^3.23.8"
   },
   "engines": {
-    "pnpm": "9.4.0",
+    "pnpm": ">=9",
     "node": ">=20"
   }
 }
