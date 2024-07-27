@@ -3,11 +3,11 @@ import {
   createSession,
   createUser,
   findExternalIdentityWithUserById,
-} from "src/domain/user.repository";
-import { fetchKakaoToken, fetchKakaoUser, KakaoHost } from "src/lib/kakao";
-import { deserializeOAuthState, serializeOAuthState } from "src/lib/oauth";
-import { assertURL } from "src/lib/url";
-import { createRoute, honoApp, z } from "src/runtime/hono";
+} from "src/domain/user.repository.js";
+import { fetchKakaoToken, fetchKakaoUser, KakaoHost } from "src/lib/kakao.js";
+import { deserializeOAuthState, serializeOAuthState } from "src/lib/oauth.js";
+import { assertURL } from "src/lib/url.js";
+import { createRoute, honoApp, z } from "src/runtime/hono.js";
 
 import { setSignedCookie } from "hono/cookie";
 

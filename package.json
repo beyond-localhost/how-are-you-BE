@@ -4,12 +4,14 @@
   "type": "module",
   "devDependencies": {
     "@types/dockerode": "^3.3.30",
-    "@types/node": "20.11.1",
+    "@types/node": "20.14.11",
     "dockerode": "^4.0.2",
     "drizzle-kit": "^0.23.0",
     "fast-check": "^3.20.0",
     "get-port": "^7.1.0",
     "msw": "^2.3.1",
+    "openapi-fetch": "^0.9.5",
+    "openapi-typescript": "^7.0.4",
     "prettier": "^3.3.0",
     "tsx": "^4.16.2",
     "typescript": "^5.5.3",
@@ -29,7 +31,8 @@
     "migration:drop": "drizzle-kit drop",
     "migration:up": "tsx ./migration",
     "seed": "tsx ./seed",
-    "db:init": "rm -rf ./sqlite.db && pnpm migration:up && pnpm seed"
+    "db:init": "rm -rf ./sqlite.db && pnpm migration:up && pnpm seed",
+    "generate:client": "tsx ./test/stubs/client/openapi"
   },
   "dependencies": {
     "@hono/node-server": "^1.12.0",
