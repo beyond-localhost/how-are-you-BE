@@ -58,8 +58,8 @@ importers:
         specifier: ^2.3.1
         version: 2.3.1(typescript@5.5.3)
       openapi-fetch:
-        specifier: ^0.10.2
-        version: 0.10.2
+        specifier: ^0.9.5
+        version: 0.9.5
       openapi-typescript:
         specifier: ^7.0.4
         version: 7.0.4(typescript@5.5.3)
@@ -3388,11 +3388,11 @@ packages:
     resolution: {integrity: sha512-1FlR+gjXK7X+AsAHso35MnyN5KqGwJRi/31ft6x0M194ht7S+rWAvd7PHss9xSKMzE0asv1pyIHaJYq+BbacAQ==}
     engines: {node: '>=12'}
 
-  openapi-fetch@0.10.2:
-    resolution: {integrity: sha512-GCzgKIZchnxZRnztiOlRTKk9tQT0NHvs5MNXYFtOwG7xaj1iCJOGDsTLbn/2QUP37PjGTT890qERFjvmjxzQMg==}
+  openapi-fetch@0.9.5:
+    resolution: {integrity: sha512-ToRnypJB2G5bEUZqJ4mGty/qDVgAZ4BW0znlXQAECxAp4EM8dYtgQ1mrw2Ij6W7knN4VawHvFq8uTqzXyMGNPA==}
 
-  openapi-typescript-helpers@0.0.9:
-    resolution: {integrity: sha512-BO2TvIDAO/FPVKz1Nj2gy+pUOHfaoENdK5UP3H0Jbh0VXBf3dwYMs58ZwOjiezrbHA2LamdquoyQgahTPvIxGA==}
+  openapi-typescript-helpers@0.0.8:
+    resolution: {integrity: sha512-1eNjQtbfNi5Z/kFhagDIaIRj6qqDzhjNJKz8cmMW0CVdGwT6e1GLbAfgI0d28VTJa1A8jz82jm/4dG8qNoNS8g==}
 
   openapi-typescript@7.0.4:
     resolution: {integrity: sha512-Cx1xsSDKRssFJTCAHDgCj7X4m2DYfmwZ0FjuV9WYXdlUtdfbp3hYO6lVrl4F4HrdOAoEs+hUo5UwEsnu2/TU7w==}
@@ -8242,11 +8242,11 @@ snapshots:
     dependencies:
       mimic-fn: 4.0.0
 
-  openapi-fetch@0.10.2:
+  openapi-fetch@0.9.5:
     dependencies:
-      openapi-typescript-helpers: 0.0.9
+      openapi-typescript-helpers: 0.0.8
 
-  openapi-typescript-helpers@0.0.9: {}
+  openapi-typescript-helpers@0.0.8: {}
 
   openapi-typescript@7.0.4(typescript@5.5.3):
     dependencies:

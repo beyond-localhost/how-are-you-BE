@@ -85,11 +85,12 @@ const test = base.extend<Context>({
       { maxRetryCount: 10, waitMS: 50 },
     );
 
-    const address = server.address()?.toString() || "";
-    if (address == "") {
+    const address = server.address();
+    if (address === null || typeof address === "string") {
       throw new Error("Server is not running correctly but client context invokes that server");
     }
-    await use(createClient(address));
+
+    await use(createClient(address.port));
     await server.close();
   },
 });
