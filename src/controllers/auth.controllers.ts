@@ -65,7 +65,13 @@ auth.openapi(
       return c.json({ code: 400 as const, error: "잘못된 URL을 입력하였습니다" }, 400);
     }
 
-    const redirectUri = `${c.var.env.Server.Host}:${c.var.env.Server.Port}/callback`;
+    let redirectUri: string;
+    if (c.var.env.App.appEnv === "production") {
+      redirectUri = `${c.var.env.Server.Host}/callback`;
+    } else {
+      redirectUri = `${c.var.env.Server.Host}:${c.var.env.Server.Port}/callback`;
+    }
+
     const kakaoURL = new URL(KakaoHost.Authorize);
     kakaoURL.searchParams.set("redirect_uri", redirectUri);
     kakaoURL.searchParams.set("response_type", "code");
