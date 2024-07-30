@@ -157,7 +157,7 @@ auth.openapi(
     await setSignedCookie(c, "sid", session.id.toString(), env.Credential.JWTSecret, {
       httpOnly: true,
       secure: c.var.env.App.appEnv === "production",
-      sameSite: "strict",
+      sameSite: "None",
       maxAge,
     });
     return c.redirect(destinationURL.toString(), 302);
