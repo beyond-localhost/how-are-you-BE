@@ -21,9 +21,12 @@ const Database = z.object({
   password: z.string(),
   database: z.string(),
 });
+const App = z.object({
+  appEnv: z.union([z.literal("development"), z.literal("production"), z.literal("test")]),
+});
 //regionend
 
-const Env = z.object({ Credential, Server, Database });
+const Env = z.object({ Credential, Server, Database, App });
 export type Env = z.infer<typeof Env>;
 
 export function resolveEnv(): Env {
@@ -44,6 +47,9 @@ export function resolveEnv(): Env {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE_NAME,
+    },
+    App: {
+      appEnv: process.env.APP_ENV,
     },
   });
 }
@@ -75,6 +81,9 @@ export function resolveTestENV(overrides?: DeepPartial<Env>): Env {
       password: "root",
       database: "",
       ...overrides?.Database,
+    },
+    App: {
+      appEnv: "test",
     },
   });
 }
