@@ -117,7 +117,12 @@ auth.openapi(
     const env = c.var.env;
     const conn = c.var.conn;
 
-    const redirectUri = `${env.Server.Host}:${env.Server.Port}/callback`;
+    let redirectUri: string;
+    if (c.var.env.App.appEnv === "production") {
+      redirectUri = `${c.var.env.Server.Host}/callback`;
+    } else {
+      redirectUri = `${c.var.env.Server.Host}:${c.var.env.Server.Port}/callback`;
+    }
     const clientId = env.Credential.KakaoRestAPIKey;
     const clientSecret = env.Credential.KakaoSecret;
 
