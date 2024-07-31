@@ -48,7 +48,12 @@ export const findOneQuestionByDistributionId = (conn: Conn, distributionId: numb
   conn.query.questionDistributions.findFirst({
     where: and(
       eq(questionDistributions.id, distributionId),
-      dateTime ? eq(questionDistributions.distributionDate, dateTime) : undefined,
+      dateTime
+        ? and(
+            gte(questionDistributions.distributionDate, sql`(CURRENT_DATE)`),
+            lte(questionDistributions.distributionDate, sql`DATE_ADD(CURRENT_DATE, INTERVAL 1 DAY)`),
+          )
+        : undefined,
     ),
   });
 
