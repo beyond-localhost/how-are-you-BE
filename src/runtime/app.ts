@@ -13,7 +13,7 @@ export const createApp = async (port: number): Promise<ServerType> => {
   app.use(depsMiddleware);
   app.use(
     cors({
-      origin: ["http://localhost:5173", "https://how-are-youu.netlify.app/"],
+      origin: ["http://localhost:5173", "https://how-are-you.realzu.site/"],
       credentials: true,
       allowHeaders: ["content-type"],
       exposeHeaders: ["content-type"],
